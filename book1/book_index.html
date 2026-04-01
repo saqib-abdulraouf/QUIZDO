@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Factory — 300 MCQ Quiz</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./quiz_style.css">
+</head>
+
+<body>
+
+  <!-- FLOATING SCORE BADGE -->
+  <div class="score-box" id="scoreBox">Score: 0 / 0</div>
+
+  <!-- FLOATING PART INDICATOR (shown during quiz) -->
+  <div class="floating-part-indicator" id="floatingPartIndicator">
+    <div class="fpi-badge p1" id="fpiBadge1" onclick="startPart(0)"><span class="fpi-dot"></span> Basic</div>
+    <div class="fpi-badge p2" id="fpiBadge2" onclick="startPart(1)"><span class="fpi-dot"></span> Intermediate</div>
+    <div class="fpi-badge p3" id="fpiBadge3" onclick="startPart(2)"><span class="fpi-dot"></span> Advanced</div>
+  </div>
+
+  <!-- HEADER (hidden by CSS, kept for auth buttons functionality) -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">AF</div>
+      <div class="header-title">Agent Factory · Quiz Master</div>
+    </div>
+    <div class="header-right">
+      <div class="auth-buttons" id="authButtons">
+        <button class="btn-auth-login" onclick="openLoginModal()">Log in</button>
+        <button class="btn-auth-signup" onclick="openLoginModal(); switchTab('signup')">Sign up for free</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEFT ICON SIDEBAR NAV (hover to show) -->
+  <div class="icon-sidebar-zone" id="iconSidebarZone"></div>
+  <nav class="icon-sidebar" id="iconSidebar">
+    <div class="icon-sidebar-arrow" id="sidebarArrow" title="Navigation">
+      <div class="isb-brand"><div class="isb-brand-logo">QM</div><span>Quiz <em>Master</em></span></div>
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </div>
+    <div class="isb-section-title">Navigation</div>
+    <div class="icon-sidebar-items">
+      <div class="isb-item" data-tip="Home / Library" onclick="goHome()">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="isb-label">Home / Library</span>
+      </div>
+      <div class="isb-item" data-tip="Book 1 — Agent Factory" onclick="openBook('300q')">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="isb-label">Book 1 — Agent Factory</span>
+      </div>
+      <div class="isb-item" data-tip="Book 2 — Chapter 12" onclick="openBook('agentfactory')">
+        <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span class="isb-label">Book 2 — Chapter 12</span>
+      </div>
+      <div class="isb-item" data-tip="PyMaster Tutor" onclick="window.location.href='../pymaster/index.html'">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        <span class="isb-label">PyMaster Tutor</span>
+      </div>
+    </div>
+    <div class="icon-sidebar-bottom">
+      <div class="isb-item" data-tip="Help" onclick="alert('Quiz Master — PIAIC Honhar Jawan\n\nPanaversity Agentic AI Course')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="isb-label">Help</span>
+      </div>
+      <div class="isb-item" data-tip="Log In / Out" onclick="typeof openLoginModal==='function'?openLoginModal():alert('Login')">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="isb-label">Log In / Out</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- OLD SIDEBAR (kept for existing part-badge functionality) -->
+  <div class="sidebar-hover-zone" id="sidebarHoverZone"></div>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <div class="sidebar-header">
+      <span class="sidebar-label">📚 Quiz Parts</span>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="closeSidebar()">✕</button>
+    </div>
+    <div id="partBadgesWrap" style="display:none;" class="sidebar-section">
+      <div class="sidebar-section-title">Agent Factory · 300 MCQs</div>
+      <div class="sidebar-badge p1" id="badge1" onclick="startPart(0)"><span class="sb-dot" style="background:#22c55e"></span> Basic <span class="sb-range">Q1–100</span></div>
+      <div class="sidebar-badge p2" id="badge2" onclick="startPart(1)"><span class="sb-dot" style="background:#38bdf8"></span> Intermediate <span class="sb-range">Q101–200</span></div>
+      <div class="sidebar-badge p3" id="badge3" onclick="startPart(2)"><span class="sb-dot" style="background:#ef4444"></span> Advanced <span class="sb-range">Q201–300</span></div>
+    </div>
+    <div id="ch12BadgesWrap" style="display:none;" class="sidebar-section">
+      <div class="sidebar-section-title">Chapter 12 · Lessons</div>
+      <div class="sidebar-badge p1" id="ch12b0" onclick="startCh12Part(0)"><span class="sb-dot" style="background:#22c55e"></span> Basic</div>
+      <div class="sidebar-badge p2" id="ch12b1" onclick="startCh12Part(1)"><span class="sb-dot" style="background:#38bdf8"></span> Conceptual</div>
+      <div class="sidebar-badge p3" id="ch12b2" onclick="startCh12Part(2)"><span class="sb-dot" style="background:#ef4444"></span> Thinking-Based</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-badge" onclick="goHome()" style="color:var(--gold);border-color:#f5c51833;">🏠 Back to Library</div>
+    </div>
+  </nav>
+  <!-- Mobile sidebar toggle -->
+  <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()">☰</button>
+
+  <!-- LOGIN / SIGNUP MODAL -->
+  <div class="modal-overlay" id="loginModal" onclick="closeLoginModalOutside(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModal()">✕</button>
+
+      <!-- STEP 1: Choose method -->
+      <div id="authStep1">
+        <div class="modal-heading">Log in or sign up</div>
+        <div class="modal-subtitle">You'll get smarter quizzes and can track your progress across all books.</div>
+
+        <button class="modal-social-btn" onclick="alert('Google login coming soon!')">
+          <svg width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#EA4335"
+              d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+            <path fill="#4285F4"
+              d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+            <path fill="#FBBC05"
+              d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+            <path fill="#34A853"
+              d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+          </svg>
+          Continue with Google
+        </button>
+        <button class="modal-social-btn" onclick="alert('Apple login coming soon!')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+          </svg>
+          Continue with Apple
+        </button>
+        <button class="modal-social-btn" onclick="alert('Phone login coming soon!')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+          </svg>
+          Continue with phone
+        </button>
+
+        <div class="modal-divider">OR</div>
+
+        <div class="modal-field">
+          <input class="modal-input" id="authEmail" type="email" placeholder="Email address">
+        </div>
+        <button class="modal-btn" onclick="goToStep2()">Continue</button>
+        <div class="modal-msg" id="authMsg1"></div>
+      </div>
+
+      <!-- STEP 2: Login (existing user) -->
+      <div id="authStep2" style="display:none;">
+        <button class="modal-back" onclick="backToStep1()">← Back</button>
+        <div class="modal-heading">Welcome back</div>
+        <div class="modal-subtitle" id="step2Email"></div>
+
+        <div class="modal-field">
+          <label class="modal-label">Password</label>
+          <input class="modal-input" id="loginPass" type="password" placeholder="Enter your password">
+        </div>
+        <button class="modal-btn" onclick="doLogin()">Log in</button>
+        <div class="modal-msg" id="loginMsg"></div>
+      </div>
+
+      <!-- STEP 3: Signup (new user) -->
+      <div id="authStep3" style="display:none;">
+        <button class="modal-back" onclick="backToStep1()">← Back</button>
+        <div class="modal-heading">Create your account</div>
+        <div class="modal-subtitle" id="step3Email"></div>
+
+        <div class="modal-field">
+          <label class="modal-label">Name</label>
+          <input class="modal-input" id="signupName" type="text" placeholder="Your full name">
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Password</label>
+          <input class="modal-input" id="signupPass" type="password" placeholder="Min 6 characters">
+        </div>
+        <button class="modal-btn" onclick="doSignup()">Create Account</button>
+        <div class="modal-msg" id="signupMsg"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HOME / LIBRARY -->
+  <div id="homePage">
+    <div class="home-eyebrow">Panaversity · Agentic AI Course</div>
+    <div class="home-heading">Quiz <span>Library</span></div>
+    <div class="home-sub">Select a book to start practicing</div>
+
+    <div class="book-shelf" style="justify-content:center;">
+
+      <!-- Book 1: Agent Factory 300 MCQ -->
+      <div class="book-card" onclick="openBook('300q')">
+        <div class="book-cover book-cover-af">
+          <div class="cover-illustration">
+            <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" width="280" height="180">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0a0a1a" />
+                  <stop offset="100%" stop-color="#1a1000" />
+                </linearGradient>
+                <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f5c518" stop-opacity="0.6" />
+                  <stop offset="100%" stop-color="#f5c518" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <rect width="280" height="180" fill="url(#sky)" />
+              <circle cx="20" cy="15" r="1" fill="#f5c518" opacity="0.6" />
+              <circle cx="55" cy="30" r="0.8" fill="#fff" opacity="0.4" />
+              <circle cx="230" cy="12" r="1" fill="#fff" opacity="0.5" />
+              <circle cx="260" cy="28" r="0.8" fill="#f5c518" opacity="0.4" />
+              <circle cx="140" cy="20" r="1" fill="#fff" opacity="0.3" />
+              <rect x="0" y="145" width="280" height="35" fill="#0d0d00" />
+              <rect x="80" y="80" width="120" height="70" fill="#1a1500" stroke="#3a3000" stroke-width="1" />
+              <rect x="95" y="90" width="18" height="14" rx="2" fill="#f5c518" opacity="0.7" />
+              <rect x="121" y="90" width="18" height="14" rx="2" fill="#f5c518" opacity="0.5" />
+              <rect x="147" y="90" width="18" height="14" rx="2" fill="#38bdf8" opacity="0.6" />
+              <rect x="173" y="90" width="18" height="14" rx="2" fill="#f5c518" opacity="0.4" />
+              <rect x="95" y="112" width="18" height="14" rx="2" fill="#38bdf8" opacity="0.5" />
+              <rect x="121" y="112" width="18" height="14" rx="2" fill="#f5c518" opacity="0.8" />
+              <rect x="147" y="112" width="18" height="14" rx="2" fill="#f5c518" opacity="0.3" />
+              <rect x="173" y="112" width="18" height="14" rx="2" fill="#38bdf8" opacity="0.7" />
+              <rect x="126" y="127" width="28" height="23" rx="3" fill="#0d0d00" stroke="#3a3000" stroke-width="1" />
+              <rect x="100" y="45" width="16" height="40" rx="3" fill="#1a1500" stroke="#3a3000" stroke-width="1" />
+              <rect x="125" y="55" width="14" height="30" rx="3" fill="#1a1500" stroke="#3a3000" stroke-width="1" />
+              <rect x="155" y="48" width="16" height="37" rx="3" fill="#1a1500" stroke="#3a3000" stroke-width="1" />
+              <circle cx="108" cy="40" r="8" fill="#2a2a3a" opacity="0.7" />
+              <circle cx="116" cy="32" r="6" fill="#2a2a3a" opacity="0.5" />
+              <circle cx="122" cy="26" r="5" fill="#1a1a2a" opacity="0.4" />
+              <circle cx="163" cy="43" r="8" fill="#2a2a3a" opacity="0.6" />
+              <circle cx="170" cy="34" r="6" fill="#2a2a3a" opacity="0.4" />
+              <rect x="0" y="130" width="280" height="50" fill="url(#glow)" opacity="0.3" />
+              <rect x="0" y="138" width="280" height="42" fill="url(#glow)" />
+            </svg>
+          </div>
+          <div class="book-cover-title">
+            Agent Factory
+            <div class="book-cover-author">Building Digital FTEs</div>
+          </div>
+        </div>
+        <div class="book-info">
+          <div class="book-tag">📚 300 MCQs · Scenario-Based</div>
+          <div class="book-title">Agent Factory: Building Digital Full-Time Equivalents (FTEs)</div>
+          <div class="book-desc">Master AI agents, MCP, Skills, Spec-Driven Development, and enterprise deployment
+            strategies.</div>
+          <div class="book-chapters-preview">
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#22c55e"></div>Part 1 — Basic &nbsp;·&nbsp; Q1–100
+            </div>
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#38bdf8"></div>Part 2 — Intermediate &nbsp;·&nbsp; Q101–200
+            </div>
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#ef4444"></div>Part 3 — Advanced &nbsp;·&nbsp; Q201–300
+            </div>
+          </div>
+          <button class="book-cta">Open Book →</button>
+        </div>
+      </div>
+
+      <!-- Book 2: Chapter 12: The AI Agent Factory Paradigm -->
+      <div class="book-card" onclick="openBook('agentfactory')">
+        <div class="book-cover"
+          style="background:linear-gradient(135deg,#0a0f1a 0%,#001030 50%,#0a0010 100%);border-bottom:1px solid #1a2a4a;height:180px;position:relative;overflow:hidden;">
+          <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" width="280" height="180"
+            style="position:absolute;top:0;left:0;">
+            <defs>
+              <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#020818" />
+                <stop offset="100%" stop-color="#001228" />
+              </linearGradient>
+              <linearGradient id="glow2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <rect width="280" height="180" fill="url(#sky2)" />
+            <circle cx="30" cy="18" r="0.8" fill="#38bdf8" opacity="0.7" />
+            <circle cx="70" cy="10" r="1" fill="#fff" opacity="0.4" />
+            <circle cx="210" cy="15" r="0.8" fill="#38bdf8" opacity="0.5" />
+            <circle cx="250" cy="25" r="1" fill="#fff" opacity="0.3" />
+            <circle cx="130" cy="8" r="0.7" fill="#a78bfa" opacity="0.6" />
+            <circle cx="180" cy="30" r="0.8" fill="#38bdf8" opacity="0.4" />
+            <circle cx="60" cy="55" r="6" fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.6" />
+            <circle cx="60" cy="55" r="2" fill="#38bdf8" opacity="0.8" />
+            <circle cx="120" cy="40" r="6" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.6" />
+            <circle cx="120" cy="40" r="2" fill="#a78bfa" opacity="0.8" />
+            <circle cx="180" cy="55" r="6" fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.6" />
+            <circle cx="180" cy="55" r="2" fill="#38bdf8" opacity="0.8" />
+            <circle cx="220" cy="40" r="6" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.5" />
+            <circle cx="220" cy="40" r="2" fill="#a78bfa" opacity="0.7" />
+            <circle cx="90" cy="75" r="5" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.5" />
+            <circle cx="90" cy="75" r="2" fill="#22c55e" opacity="0.7" />
+            <circle cx="150" cy="68" r="5" fill="none" stroke="#f5c518" stroke-width="1" opacity="0.5" />
+            <circle cx="150" cy="68" r="2" fill="#f5c518" opacity="0.7" />
+            <line x1="60" y1="55" x2="120" y2="40" stroke="#38bdf8" stroke-width="0.6" opacity="0.3" />
+            <line x1="120" y1="40" x2="180" y2="55" stroke="#a78bfa" stroke-width="0.6" opacity="0.3" />
+            <line x1="180" y1="55" x2="220" y2="40" stroke="#38bdf8" stroke-width="0.6" opacity="0.3" />
+            <line x1="60" y1="55" x2="90" y2="75" stroke="#22c55e" stroke-width="0.6" opacity="0.3" />
+            <line x1="120" y1="40" x2="150" y2="68" stroke="#f5c518" stroke-width="0.6" opacity="0.3" />
+            <line x1="180" y1="55" x2="150" y2="68" stroke="#a78bfa" stroke-width="0.6" opacity="0.25" />
+            <circle cx="140" cy="105" r="28" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.5" />
+            <circle cx="140" cy="105" r="20" fill="#001228" stroke="#38bdf8" stroke-width="1" opacity="0.7" />
+            <circle cx="140" cy="105" r="12" fill="#002040" stroke="#38bdf8" stroke-width="0.8" opacity="0.8" />
+            <circle cx="140" cy="105" r="5" fill="#38bdf8" opacity="0.9" />
+            <circle cx="140" cy="77" r="3" fill="#a78bfa" opacity="0.8" />
+            <circle cx="168" cy="105" r="3" fill="#22c55e" opacity="0.8" />
+            <circle cx="140" cy="133" r="3" fill="#f5c518" opacity="0.8" />
+            <circle cx="112" cy="105" r="3" fill="#38bdf8" opacity="0.8" />
+            <rect x="0" y="138" width="280" height="42" fill="url(#glow2)" />
+          </svg>
+          <div class="book-cover-title" style="color:#38bdf8;">
+            Chapter 12
+            <div class="book-cover-author" style="color:#2a6a8a;">The AI Agent Factory Paradigm</div>
+          </div>
+        </div>
+        <div class="book-info">
+          <div class="book-tag" style="color:#38bdf8;background:#38bdf80d;border-color:#38bdf830;">📖 312 MCQs ·
+            Lesson-Wise</div>
+          <div class="book-title">Chapter 12: The AI Agent Factory Paradigm</div>
+          <div class="book-desc">All 10 Lessons — 212 Factual + 100 Conceptual &amp; Scenario-Based MCQs. University
+            Exam Style.</div>
+          <div class="book-chapters-preview">
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#38bdf8"></div>Lessons 1–5 &nbsp;·&nbsp; Inflection Point → AIFF
+              Standards
+            </div>
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#a78bfa"></div>Lessons 6–10 &nbsp;·&nbsp; Digital FTE → Enterprise
+              Sales
+            </div>
+          </div>
+          <button class="book-cta" style="background:#38bdf8;color:#000;">Open Book →</button>
+        </div>
+      </div>
+
+      <!-- Book 3: PyMaster Tutor -->
+      <div class="book-card" onclick="window.location.href='../pymaster/index.html'" style="cursor:pointer;">
+        <div class="book-cover"
+          style="background:linear-gradient(135deg,#0a1a0a 0%,#001a00 50%,#0a1500 100%);border-bottom:1px solid #1a3a1a;height:180px;position:relative;overflow:hidden;">
+          <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" width="280" height="180"
+            style="position:absolute;top:0;left:0;">
+            <defs>
+              <linearGradient id="pysky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#020d02" />
+                <stop offset="100%" stop-color="#001500" />
+              </linearGradient>
+              <linearGradient id="pyglow" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <rect width="280" height="180" fill="url(#pysky)" />
+            <!-- Stars -->
+            <circle cx="25" cy="15" r="0.8" fill="#22c55e" opacity="0.6" />
+            <circle cx="80" cy="22" r="1" fill="#fff" opacity="0.3" />
+            <circle cx="220" cy="10" r="0.8" fill="#22c55e" opacity="0.5" />
+            <circle cx="255" cy="30" r="1" fill="#fff" opacity="0.3" />
+            <circle cx="140" cy="18" r="0.7" fill="#ffd000" opacity="0.5" />
+            <!-- Python logo shape -->
+            <g transform="translate(100, 30)">
+              <!-- Snake body curve -->
+              <path d="M40,0 C60,0 80,10 80,30 C80,50 60,60 40,60 C20,60 0,50 0,30 C0,10 20,0 40,0Z" fill="none"
+                stroke="#22c55e" stroke-width="1.5" opacity="0.4" />
+              <!-- P letter -->
+              <text x="25" y="42" font-size="32" font-weight="900" fill="#22c55e" opacity="0.85"
+                font-family="monospace">Py</text>
+            </g>
+            <!-- Code lines decoration -->
+            <rect x="30" y="100" width="60" height="3" rx="1.5" fill="#22c55e" opacity="0.25" />
+            <rect x="30" y="108" width="40" height="3" rx="1.5" fill="#ffd000" opacity="0.2" />
+            <rect x="30" y="116" width="50" height="3" rx="1.5" fill="#22c55e" opacity="0.15" />
+            <rect x="175" y="100" width="55" height="3" rx="1.5" fill="#ffd000" opacity="0.25" />
+            <rect x="175" y="108" width="35" height="3" rx="1.5" fill="#22c55e" opacity="0.2" />
+            <rect x="175" y="116" width="45" height="3" rx="1.5" fill="#ffd000" opacity="0.15" />
+            <!-- AI spark dots -->
+            <circle cx="140" cy="108" r="4" fill="#22c55e" opacity="0.7" />
+            <circle cx="155" cy="100" r="2.5" fill="#ffd000" opacity="0.6" />
+            <circle cx="125" cy="100" r="2.5" fill="#ffd000" opacity="0.6" />
+            <circle cx="155" cy="116" r="2.5" fill="#22c55e" opacity="0.5" />
+            <circle cx="125" cy="116" r="2.5" fill="#22c55e" opacity="0.5" />
+            <!-- Lines from center -->
+            <line x1="140" y1="108" x2="155" y2="100" stroke="#ffd000" stroke-width="0.8" opacity="0.4" />
+            <line x1="140" y1="108" x2="125" y2="100" stroke="#ffd000" stroke-width="0.8" opacity="0.4" />
+            <line x1="140" y1="108" x2="155" y2="116" stroke="#22c55e" stroke-width="0.8" opacity="0.4" />
+            <line x1="140" y1="108" x2="125" y2="116" stroke="#22c55e" stroke-width="0.8" opacity="0.4" />
+            <!-- Glow overlay -->
+            <rect x="0" y="138" width="280" height="42" fill="url(#pyglow)" />
+          </svg>
+          <div class="book-cover-title" style="color:#22c55e;">
+            PyMaster Tutor
+            <div class="book-cover-author" style="color:#1a6a2a;">AI-Powered · Interactive Exam</div>
+          </div>
+        </div>
+        <div class="book-info">
+          <div class="book-tag" style="color:#22c55e;background:#22c55e0d;border-color:#22c55e30;">🐍 AI Generated · MCQ
+            Drill</div>
+          <div class="book-title">PyMaster Tutor — Interactive Python Exam</div>
+          <div class="book-desc">AI se generate hone wale Python MCQs — Basic, Intermediate, Advanced. Har baar naye
+            questions!</div>
+          <div class="book-chapters-preview">
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#22c55e"></div>Basic &nbsp;·&nbsp; Syntax, Definitions, Output
+            </div>
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#ffd000"></div>Intermediate &nbsp;·&nbsp; Methods, Errors, Concepts
+            </div>
+            <div class="bcp-row">
+              <div class="bcp-dot" style="background:#ef4444"></div>Advanced &nbsp;·&nbsp; Traps, Best Practices
+            </div>
+          </div>
+          <button class="book-cta" style="background:#22c55e;color:#000;">Open PyMaster →</button>
+        </div>
+      </div>
+
+      <!-- Book 4: Coming Soon -->
+      <div class="book-card coming-soon">
+        <div class="coming-badge">Coming Soon</div>
+        <div class="book-cover"
+          style="background:linear-gradient(135deg,#0d1117,#0a0a1a,#0d0d1a);border-bottom:1px solid #1a1a2a;height:180px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" width="280" height="180">
+            <rect width="280" height="180" fill="#0a0a1a" />
+            <text x="140" y="85" font-size="40" text-anchor="middle" fill="#1a1a2a">📖</text>
+            <text x="140" y="115" font-size="11" text-anchor="middle" fill="#2a2a3a" font-family="monospace">MORE
+              COMING</text>
+          </svg>
+        </div>
+        <div class="book-info">
+          <div class="book-tag" style="color:var(--muted);background:#1a1a2a;border-color:#2a2a3a">🔒 Coming Soon</div>
+          <div class="book-title" style="color:var(--muted)">Next Book</div>
+          <div class="book-desc">More books will be added here soon.</div>
+          <button class="book-cta" style="background:#1a1a2a;color:var(--muted);" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHAPTER SELECT PAGE -->
+  <div id="chapterPage"
+    style="display:none; flex:1; flex-direction:column; align-items:center; padding:40px 20px 60px; text-align:center;">
+    <div class="landing-back" onclick="goHome()">← Back to Library</div>
+    <div class="landing-icon">🏭</div>
+    <div class="landing-title">Chapter 12: The AI Agent Factory Paradigm</div>
+    <div class="landing-sub">Select a Chapter</div>
+    <div class="part-cards" style="max-width:960px;">
+
+      <div class="part-card c1" onclick="openChapter(1)">
+        <div class="pc-num">Chapter 1</div>
+        <div class="pc-title">All 10 Lessons</div>
+        <div class="pc-range">312 MCQs</div>
+        <div class="pc-count">Factual + Conceptual · University Exam Style</div>
+      </div>
+
+      <div class="part-card" style="border-color:#2a2a3a;opacity:0.4;pointer-events:none;">
+        <div class="pc-num" style="color:#6b7280;">Chapter 2</div>
+        <div class="pc-title" style="color:#6b7280;">Coming Soon</div>
+        <div class="pc-range" style="color:#6b7280;">—</div>
+        <div class="pc-count" style="color:#6b7280;">Will be added soon</div>
+      </div>
+
+      <div class="part-card" style="border-color:#2a2a3a;opacity:0.4;pointer-events:none;">
+        <div class="pc-num" style="color:#6b7280;">Chapter 3</div>
+        <div class="pc-title" style="color:#6b7280;">Coming Soon</div>
+        <div class="pc-range" style="color:#6b7280;">—</div>
+        <div class="pc-count" style="color:#6b7280;">Will be added soon</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHAPTER 1 LESSON SELECT PAGE -->
+  <div id="ch1Page"
+    style="display:none; flex:1; flex-direction:column; align-items:center; padding:32px 20px 60px; text-align:center;">
+    <div class="landing-back" onclick="openBook('agentfactory')">← Back to Chapters</div>
+    <div class="landing-icon">📖</div>
+    <div class="landing-title" style="font-size:clamp(18px,3.5vw,26px);">Chapter 12 — Select a Lesson</div>
+    <div class="landing-sub">312 MCQs · 10 Lessons · Factual + Conceptual</div>
+    <div
+      style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:960px;width:100%;margin-bottom:28px;">
+      <div class="part-card" style="border-color:#38bdf833;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(0)">
+        <div class="pc-num" style="color:#38bdf8;">Lesson 1</div>
+        <div class="pc-title" style="font-size:13px;">2025 Inflection Point &amp; Agent Maturity Model</div>
+        <div class="pc-count" style="margin-top:8px;">40 Questions</div>
+        <div class="pc-progress" id="progCh1L0"></div>
+      </div>
+      <div class="part-card" style="border-color:#a78bfa33;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(1)">
+        <div class="pc-num" style="color:#a78bfa;">Lesson 2</div>
+        <div class="pc-title" style="font-size:13px;">Three Core LLM Constraints</div>
+        <div class="pc-count" style="margin-top:8px;">39 Questions</div>
+        <div class="pc-progress" id="progCh1L1"></div>
+      </div>
+      <div class="part-card" style="border-color:#22c55e33;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(2)">
+        <div class="pc-num" style="color:#22c55e;">Lesson 3</div>
+        <div class="pc-title" style="font-size:13px;">Coder to Orchestrator &amp; OODA Loop</div>
+        <div class="pc-count" style="margin-top:8px;">36 Questions</div>
+        <div class="pc-progress" id="progCh1L2"></div>
+      </div>
+      <div class="part-card" style="border-color:#f5c51833;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(3)">
+        <div class="pc-num" style="color:#f5c518;">Lesson 4</div>
+        <div class="pc-title" style="font-size:13px;">Five Powers &amp; Modern AI Stack</div>
+        <div class="pc-count" style="margin-top:8px;">40 Questions</div>
+        <div class="pc-progress" id="progCh1L3"></div>
+      </div>
+      <div class="part-card" style="border-color:#ef444433;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(4)">
+        <div class="pc-num" style="color:#ef4444;">Lesson 5</div>
+        <div class="pc-title" style="font-size:13px;">AIFF Standards Foundation</div>
+        <div class="pc-count" style="margin-top:8px;">42 Questions</div>
+        <div class="pc-progress" id="progCh1L4"></div>
+      </div>
+      <div class="part-card" style="border-color:#38bdf833;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(5)">
+        <div class="pc-num" style="color:#38bdf8;">Lesson 6</div>
+        <div class="pc-title" style="font-size:13px;">Digital FTE Business Strategy</div>
+        <div class="pc-count" style="margin-top:8px;">42 Questions</div>
+        <div class="pc-progress" id="progCh1L5"></div>
+      </div>
+      <div class="part-card" style="border-color:#a78bfa33;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(6)">
+        <div class="pc-num" style="color:#a78bfa;">Lesson 7</div>
+        <div class="pc-title" style="font-size:13px;">Nine Pillars of AIDD</div>
+        <div class="pc-count" style="margin-top:8px;">48 Questions</div>
+        <div class="pc-progress" id="progCh1L6"></div>
+      </div>
+      <div class="part-card" style="border-color:#22c55e33;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(7)">
+        <div class="pc-num" style="color:#22c55e;">Lesson 8</div>
+        <div class="pc-title" style="font-size:13px;">Spec-Driven Development (SDD)</div>
+        <div class="pc-count" style="margin-top:8px;">37 Questions</div>
+        <div class="pc-progress" id="progCh1L7"></div>
+      </div>
+      <div class="part-card" style="border-color:#f5c51833;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(8)">
+        <div class="pc-num" style="color:#f5c518;">Lesson 9</div>
+        <div class="pc-title" style="font-size:13px;">Synthesis: Digital FTE Vision</div>
+        <div class="pc-count" style="margin-top:8px;">32 Questions</div>
+        <div class="pc-progress" id="progCh1L8"></div>
+      </div>
+      <div class="part-card" style="border-color:#ef444433;min-width:175px;max-width:195px;"
+        onclick="startCh1Lesson(9)">
+        <div class="pc-num" style="color:#ef4444;">Lesson 10</div>
+        <div class="pc-title" style="font-size:13px;">Selling Agentic AI to Enterprises</div>
+        <div class="pc-count" style="margin-top:8px;">35 Questions</div>
+        <div class="pc-progress" id="progCh1L9"></div>
+      </div>
+    </div>
+    <button class="start-all-btn" style="background:#38bdf8;color:#000;" onclick="startCh1Lesson(0)">Start from Lesson 1
+      →</button>
+  </div>
+
+  <!-- LANDING (300Q quiz part select) -->
+  <div id="landingPage"
+    style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
+    <div class="landing-back" onclick="goHome()">← Back to Library</div>
+    <div class="landing-icon">🏭</div>
+    <div class="landing-title">Agent Factory<br>300 MCQ Quiz</div>
+    <div class="landing-sub">Panaversity Agentic AI Course · Scenario-Based</div>
+    <div class="part-cards">
+      <div class="part-card c1" onclick="startPart(0)" id="pc300q0">
+        <div class="pc-num">Part 1</div>
+        <div class="pc-title">Basic</div>
+        <div class="pc-range">Q1 — Q100</div>
+        <div class="pc-count">100 Questions</div>
+        <div class="pc-progress" id="prog300q0"></div>
+      </div>
+      <div class="part-card c2" onclick="startPart(1)" id="pc300q1">
+        <div class="pc-num">Part 2</div>
+        <div class="pc-title">Intermediate</div>
+        <div class="pc-range">Q101 — Q200</div>
+        <div class="pc-count">100 Questions</div>
+        <div class="pc-progress" id="prog300q1"></div>
+      </div>
+      <div class="part-card c3" onclick="startPart(2)" id="pc300q2">
+        <div class="pc-num">Part 3</div>
+        <div class="pc-title">Advanced</div>
+        <div class="pc-range">Q201 — Q300</div>
+        <div class="pc-count">100 Questions</div>
+        <div class="pc-progress" id="prog300q2"></div>
+      </div>
+    </div>
+    <button class="start-all-btn" onclick="startPart(0)">Start from Q1 →</button>
+  </div>
+  <!-- QUIZ -->
+  <div id="quizPage">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-label" id="progressLabel">Q1 of 100</span>
+        <span class="progress-label" id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="dots-wrap">
+      <div class="dots-inner" id="dotsInner"></div>
+    </div>
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="q-num" id="qNum">Q1</span>
+        <span class="q-part-tag" id="qPartTag"></span>
+      </div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="optionsWrap"></div>
+      <div class="feedback-box" id="feedbackBox"></div>
+    </div>
+    <div class="controls" id="bottomControls">
+      <button class="ctrl-btn" id="btnPrev" onclick="navigate(-1)">← Prev</button>
+      <button class="ctrl-btn" id="btnSkip" onclick="skipQ()">Skip →</button>
+      <button class="ctrl-btn primary" id="btnNext" onclick="navigate(1)">Next →</button>
+      <button class="ctrl-btn" onclick="goLanding()">← Chapters</button>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE VERTICAL QUIZ CONTROLS (desktop) -->
+  <div class="right-controls" id="rightControls" style="display:none;">
+    <button class="rc-btn" id="rcPrev" data-tip="Previous" onclick="navigate(-1)">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="rc-btn" id="rcSkip" data-tip="Skip" onclick="skipQ()">
+      <svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+    </button>
+    <button class="rc-btn primary" id="rcNext" data-tip="Next" onclick="navigate(1)">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <div class="rc-divider"></div>
+    <button class="rc-btn" id="rcChapters" data-tip="Chapters" onclick="goLanding()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsPage">
+    <div class="result-grade" id="resGrade"></div>
+    <div class="result-label" id="resLabel"></div>
+    <div class="result-stats">
+      <div class="stat-box">
+        <div class="stat-val" id="resCorrect" style="color:var(--green)">0</div>
+        <div class="stat-lbl">CORRECT</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="resWrong" style="color:var(--red)">0</div>
+        <div class="stat-lbl">WRONG</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="resSkipped" style="color:var(--muted)">0</div>
+        <div class="stat-lbl">SKIPPED</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="resTotal" style="color:var(--gold)">0</div>
+        <div class="stat-lbl">TOTAL</div>
+      </div>
+    </div>
+    <div class="result-btns">
+      <button class="res-btn primary" id="retryBtn" onclick="retryPart()">🔄 Retry This Part</button>
+      <button class="res-btn" onclick="goHome()">🏠 Library</button>
+    </div>
+  </div>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <script>
+    // Sidebar expand/collapse toggle
+    (function() {
+      const arrow = document.getElementById('sidebarArrow');
+      const sidebar = document.getElementById('iconSidebar');
+      if (arrow && sidebar) {
+        arrow.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle('expanded');
+        });
+        // Close expanded sidebar when clicking outside
+        document.addEventListener('click', function(e) {
+          if (sidebar.classList.contains('expanded') && !sidebar.contains(e.target)) {
+            sidebar.classList.remove('expanded');
+          }
+        });
+      }
+    })();
+
+    // Sidebar toggle for mobile
+    function toggleSidebar() {
+      const nav = document.getElementById('sidebarNav');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen = nav.classList.contains('open');
+      if (isOpen) {
+        closeSidebar();
+      } else {
+        nav.classList.add('open');
+        overlay.classList.add('open');
+      }
+    }
+    function closeSidebar() {
+      document.getElementById('sidebarNav').classList.remove('open');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (overlay) overlay.classList.remove('open');
+    }
+
+    // Right controls sync with quiz state
+    const _origStartPart = typeof startPart === 'function' ? startPart : null;
+    function syncRightControls() {
+      const qp = document.getElementById('quizPage');
+      const rc = document.getElementById('rightControls');
+      const isQuiz = qp && qp.style.display === 'flex';
+      if (rc) rc.style.display = isQuiz ? 'flex' : 'none';
+      if (isQuiz) {
+        document.body.classList.add('quiz-active');
+        // Show floating part indicator
+        const fpi = document.getElementById('floatingPartIndicator');
+        if (fpi) {
+          fpi.classList.add('visible');
+          document.querySelectorAll('.fpi-badge').forEach((b,i) => b.classList.toggle('active', i === currentPart));
+        }
+        const rcPrev = document.getElementById('rcPrev');
+        const rcSkip = document.getElementById('rcSkip');
+        const rcNext = document.getElementById('rcNext');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnSkip = document.getElementById('btnSkip');
+        const btnNext = document.getElementById('btnNext');
+        if (rcPrev && btnPrev) rcPrev.disabled = btnPrev.disabled;
+        if (rcSkip && btnSkip) rcSkip.disabled = btnSkip.disabled;
+        if (rcNext && btnNext) rcNext.disabled = btnNext.disabled;
+      } else {
+        document.body.classList.remove('quiz-active');
+        // Hide floating part indicator
+        const fpi = document.getElementById('floatingPartIndicator');
+        if (fpi) fpi.classList.remove('visible');
+      }
+    }
+    const quizPageEl = document.getElementById('quizPage');
+    if (quizPageEl) {
+      new MutationObserver(syncRightControls).observe(quizPageEl, { attributes: true, attributeFilter: ['style'] });
+    }
+    const _origRenderQ = window.renderQ;
+    if (typeof _origRenderQ === 'function') {
+      window.renderQ = function() {
+        _origRenderQ.apply(this, arguments);
+        syncRightControls();
+      };
+    } else {
+      setInterval(syncRightControls, 500);
+    }
+  </script>
+
+  <script src="./quiz_script.js"></script>
+</body>
+
+</html>

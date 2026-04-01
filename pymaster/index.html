@@ -1,0 +1,3484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PyMaster Tutor — Interactive Exam</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./quiz_style.css">
+  <style>
+    :root {
+      --gold: #ffd000;
+      --gold2: #ff8800;
+      --red: #ff4444;
+      --green: #22c55e;
+      --bg: #07070d;
+      --bg2: rgba(7, 7, 13, .94);
+      --card: rgba(255, 255, 255, .03);
+      --border: rgba(255, 208, 0, .12);
+      --text: #e0ddf2;
+      --muted: rgba(224, 221, 242, .4);
+      --mono: 'Space Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      overflow: hidden
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: linear-gradient(rgba(255, 208, 0, .02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 208, 0, .02) 1px, transparent 1px);
+      background-size: 38px 38px
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(130px);
+      pointer-events: none;
+      z-index: 0
+    }
+
+    .orb-a {
+      width: 600px;
+      height: 600px;
+      top: -260px;
+      right: -130px;
+      background: rgba(255, 200, 0, .05)
+    }
+
+    .orb-b {
+      width: 500px;
+      height: 500px;
+      bottom: -200px;
+      left: -140px;
+      background: rgba(70, 30, 210, .07)
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+      overflow: hidden
+    }
+
+    /* HEADER (hidden — using sidebar nav instead) */
+    .app-hdr {
+      display: none !important;
+      position: relative;
+      z-index: 20;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 24px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      flex-shrink: 0
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .logo-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--bg);
+      box-shadow: 0 0 18px rgba(255, 208, 0, .28)
+    }
+
+    .logo-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      line-height: 1.1
+    }
+
+    .logo-title em {
+      color: var(--gold);
+      font-style: normal
+    }
+
+    .logo-sub {
+      font-size: 9px;
+      color: var(--muted);
+      font-family: var(--mono);
+      letter-spacing: 1.5px;
+      margin-top: 1px
+    }
+
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .hdr-part {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all .25s;
+      cursor: pointer
+    }
+
+    .hdr-part .hdr-part-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .hdr-part .hdr-part-title {
+      font-weight: 700;
+      font-size: 11px;
+      font-family: var(--sans);
+      text-transform: none
+    }
+
+    .hdr-part .hdr-part-range {
+      opacity: .6;
+      font-size: 8px
+    }
+
+    .hp-basic {
+      background: rgba(34, 197, 94, .06);
+      border: 1px solid rgba(34, 197, 94, .2);
+      color: #86efac
+    }
+
+    .hp-basic .hdr-part-dot {
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, .5)
+    }
+
+    .hp-basic.active {
+      background: rgba(34, 197, 94, .2);
+      border-color: rgba(34, 197, 94, .6);
+      box-shadow: 0 0 16px rgba(34, 197, 94, .3), 0 0 0 1px rgba(34, 197, 94, .3);
+      transform: scale(1.05)
+    }
+
+    .hp-inter {
+      background: rgba(255, 208, 0, .06);
+      border: 1px solid rgba(255, 208, 0, .2);
+      color: #fde68a
+    }
+
+    .hp-inter .hdr-part-dot {
+      background: var(--gold);
+      box-shadow: 0 0 6px rgba(255, 208, 0, .5)
+    }
+
+    .hp-inter.active {
+      background: rgba(255, 208, 0, .2);
+      border-color: rgba(255, 208, 0, .6);
+      box-shadow: 0 0 16px rgba(255, 208, 0, .3), 0 0 0 1px rgba(255, 208, 0, .3);
+      transform: scale(1.05)
+    }
+
+    .hp-adv {
+      background: rgba(255, 68, 68, .06);
+      border: 1px solid rgba(255, 68, 68, .2);
+      color: #fca5a5
+    }
+
+    .hp-adv .hdr-part-dot {
+      background: var(--red);
+      box-shadow: 0 0 6px rgba(255, 68, 68, .5)
+    }
+
+    .hp-adv.active {
+      background: rgba(255, 68, 68, .2);
+      border-color: rgba(255, 68, 68, .6);
+      box-shadow: 0 0 16px rgba(255, 68, 68, .3), 0 0 0 1px rgba(255, 68, 68, .3);
+      transform: scale(1.05)
+    }
+
+    .btn-ghost {
+      padding: 6px 13px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      background: rgba(255, 255, 255, .04);
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(255, 208, 0, .3);
+      color: var(--gold)
+    }
+
+    /* LIVE SCORE BADGE */
+    .score-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 20px;
+      background: rgba(34, 197, 94, .08);
+      border: 1px solid rgba(34, 197, 94, .2);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #86efac;
+      transition: all .3s
+    }
+
+    .score-live .sc-num {
+      font-size: 14px;
+      color: #22c55e
+    }
+
+    /* ── LANDING ── */
+    #landing {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 18px 20px
+    }
+
+    #landing::-webkit-scrollbar {
+      width: 3px
+    }
+
+    #landing::-webkit-scrollbar-thumb {
+      background: rgba(255, 208, 0, .15);
+      border-radius: 2px
+    }
+
+    /* PYRAMID DRILL LAYOUT */
+    .pyramid-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      max-width: 850px;
+      width: 100%
+    }
+
+    .pyramid-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    /* SEARCH SUGGESTIONS */
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(7, 7, 13, .96);
+      border: 1px solid rgba(255, 208, 0, .2);
+      border-radius: 10px;
+      margin-top: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      backdrop-filter: blur(16px);
+      display: none
+    }
+
+    .search-suggestions.active {
+      display: block
+    }
+
+    .search-suggestions::-webkit-scrollbar {
+      width: 3px
+    }
+
+    .search-suggestions::-webkit-scrollbar-thumb {
+      background: rgba(255, 208, 0, .15);
+      border-radius: 2px
+    }
+
+    .sug-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(224, 221, 242, .7);
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .04)
+    }
+
+    .sug-item:last-child {
+      border-bottom: none
+    }
+
+    .sug-item:hover {
+      background: rgba(255, 208, 0, .08);
+      color: var(--gold)
+    }
+
+    .sug-item .sug-icon {
+      font-size: 14px;
+      flex-shrink: 0
+    }
+
+    .sug-item .sug-name {
+      flex: 1;
+      font-weight: 700
+    }
+
+    .sug-item .sug-desc {
+      font-size: 9px;
+      color: var(--muted);
+      margin-left: auto
+    }
+
+    .sug-item .sug-match {
+      color: var(--gold);
+      font-weight: 700
+    }
+
+    .hero {
+      text-align: center
+    }
+
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--red);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .hero-tag::before,
+    .hero-tag::after {
+      content: "";
+      width: 30px;
+      height: 1px;
+      background: rgba(255, 68, 68, .3)
+    }
+
+    .hero-h1 {
+      font-size: clamp(22px, 4vw, 38px);
+      font-weight: 800;
+      line-height: 1.06;
+      letter-spacing: -2px;
+      margin-bottom: 6px
+    }
+
+    .hero-h1 .ac {
+      color: var(--gold)
+    }
+
+    .hero-h1 .ac2 {
+      color: var(--red)
+    }
+
+    .hero-p {
+      color: var(--muted);
+      font-size: 11px;
+      max-width: 420px;
+      margin: 0 auto;
+      line-height: 1.6
+    }
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      max-width: 750px;
+      width: 100%
+    }
+
+    .topic-chip {
+      padding: 12px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .08);
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(224, 221, 242, .7);
+      font-family: var(--mono);
+      transition: all .22s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: .5px
+    }
+
+    .topic-chip::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--gold), var(--gold2));
+      opacity: .4;
+      transition: opacity .2s
+    }
+
+    .topic-chip:hover {
+      background: rgba(255, 208, 0, .1);
+      border-color: rgba(255, 208, 0, .35);
+      color: var(--gold);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(255, 208, 0, .12), 0 0 0 1px rgba(255, 208, 0, .15)
+    }
+
+    .topic-chip:hover::before {
+      opacity: 1
+    }
+
+    .topic-chip:nth-child(6n+1)::before {
+      background: linear-gradient(180deg, #22c55e, #10b981)
+    }
+
+    .topic-chip:nth-child(6n+1):hover {
+      border-color: rgba(34, 197, 94, .35);
+      color: #86efac;
+      background: rgba(34, 197, 94, .1);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, .12)
+    }
+
+    .topic-chip:nth-child(6n+2)::before {
+      background: linear-gradient(180deg, #a78bfa, #8b5cf6)
+    }
+
+    .topic-chip:nth-child(6n+2):hover {
+      border-color: rgba(167, 139, 250, .35);
+      color: #c4b5fd;
+      background: rgba(167, 139, 250, .1);
+      box-shadow: 0 6px 20px rgba(167, 139, 250, .12)
+    }
+
+    .topic-chip:nth-child(6n+3)::before {
+      background: linear-gradient(180deg, #38bdf8, #0ea5e9)
+    }
+
+    .topic-chip:nth-child(6n+3):hover {
+      border-color: rgba(56, 189, 248, .35);
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, .1);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, .12)
+    }
+
+    .topic-chip:nth-child(6n+4)::before {
+      background: linear-gradient(180deg, var(--red), #ef4444)
+    }
+
+    .topic-chip:nth-child(6n+4):hover {
+      border-color: rgba(255, 68, 68, .35);
+      color: #fca5a5;
+      background: rgba(255, 68, 68, .1);
+      box-shadow: 0 6px 20px rgba(255, 68, 68, .12)
+    }
+
+    .topic-chip:nth-child(6n+5)::before {
+      background: linear-gradient(180deg, var(--gold), var(--gold2))
+    }
+
+    .topic-chip:nth-child(6n+5):hover {
+      border-color: rgba(255, 208, 0, .35);
+      color: var(--gold);
+      background: rgba(255, 208, 0, .1);
+      box-shadow: 0 6px 20px rgba(255, 208, 0, .12)
+    }
+
+    .topic-chip:nth-child(6n+6)::before {
+      background: linear-gradient(180deg, #fb923c, #f97316)
+    }
+
+    .topic-chip:nth-child(6n+6):hover {
+      border-color: rgba(251, 146, 60, .35);
+      color: #fdba74;
+      background: rgba(251, 146, 60, .1);
+      box-shadow: 0 6px 20px rgba(251, 146, 60, .12)
+    }
+
+    .search-wrap {
+      display: flex;
+      gap: 9px;
+      max-width: 540px;
+      width: 100%;
+      position: relative
+    }
+
+    .search-inp {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .09);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      outline: none;
+      transition: all .2s
+    }
+
+    .search-inp:focus {
+      border-color: rgba(255, 208, 0, .45);
+      background: rgba(255, 208, 0, .025);
+      box-shadow: 0 0 0 3px rgba(255, 208, 0, .04)
+    }
+
+    .search-inp::placeholder {
+      color: rgba(224, 221, 242, .2)
+    }
+
+    .btn-exam {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--red), #ff6600);
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 12px;
+      color: #fff;
+      transition: all .2s;
+      box-shadow: 0 4px 16px rgba(255, 68, 68, .25);
+      white-space: nowrap
+    }
+
+    .btn-exam:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(255, 68, 68, .35)
+    }
+
+    .btn-exam:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    /* ── QUIZ LAYOUT ── */
+    #quiz {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      z-index: 5;
+      flex-direction: column
+    }
+
+    #quiz.active {
+      display: flex
+    }
+
+    /* QUIZ TOPBAR */
+    .quiz-topbar {
+      display: none
+    }
+
+    .topic-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      font-family: var(--mono)
+    }
+
+    .part-tabs {
+      display: flex;
+      gap: 4px
+    }
+
+    .part-tab {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-family: var(--mono);
+      transition: all .2s;
+      color: var(--muted);
+      background: transparent
+    }
+
+    .part-tab.p1 {
+      border-color: rgba(34, 197, 94, .2);
+      color: rgba(34, 197, 94, .6)
+    }
+
+    .part-tab.p1:hover,
+    .part-tab.p1.active {
+      background: rgba(34, 197, 94, .12);
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, .4)
+    }
+
+    .part-tab.p2 {
+      border-color: rgba(255, 208, 0, .2);
+      color: rgba(255, 208, 0, .6)
+    }
+
+    .part-tab.p2:hover,
+    .part-tab.p2.active {
+      background: rgba(255, 208, 0, .12);
+      color: var(--gold);
+      border-color: rgba(255, 208, 0, .4)
+    }
+
+    .part-tab.p3 {
+      border-color: rgba(255, 68, 68, .2);
+      color: rgba(255, 68, 68, .6)
+    }
+
+    .part-tab.p3:hover,
+    .part-tab.p3.active {
+      background: rgba(255, 68, 68, .12);
+      color: var(--red);
+      border-color: rgba(255, 68, 68, .4)
+    }
+
+    .dot-s {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+      background: currentColor;
+      opacity: .35
+    }
+
+    .dot-s.done {
+      opacity: 1;
+      box-shadow: 0 0 5px currentColor
+    }
+
+    .dot-s.spin {
+      animation: pp 1s infinite
+    }
+
+    @keyframes pp {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .2
+      }
+    }
+
+    /* PROGRESS BAR */
+    .quiz-progress {
+      height: 2px;
+      background: rgba(255, 255, 255, .07);
+      flex-shrink: 0
+    }
+
+    .quiz-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      transition: width .4s;
+      width: 0%
+    }
+
+    /* QUIZ BODY — ONE Q AT A TIME */
+    .quiz-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: center
+    }
+
+    .quiz-body::-webkit-scrollbar {
+      width: 3px
+    }
+
+    .quiz-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 208, 0, .15);
+      border-radius: 2px
+    }
+
+    .quiz-inner {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1
+    }
+
+    /* Q COUNTER ROW */
+    .q-counter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex-shrink: 0
+    }
+
+    .q-counter {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .q-counter strong {
+      color: var(--text);
+      font-size: 14px
+    }
+
+    .q-dots-row {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+      max-width: 400px
+    }
+
+    .q-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .1);
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0
+    }
+
+    .q-dot.answered-correct {
+      background: var(--green)
+    }
+
+    .q-dot.answered-wrong {
+      background: var(--red)
+    }
+
+    .q-dot.current {
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold)
+    }
+
+    .q-dot.skipped {
+      background: rgba(255, 208, 0, .3)
+    }
+
+    /* MCQ CARD */
+    .mcq-card {
+      padding: 18px 22px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .035);
+      border: 1px solid rgba(255, 255, 255, .08);
+      transition: border-color .3s;
+      flex: 1;
+      display: flex;
+      flex-direction: column
+    }
+
+    .mcq-part-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      opacity: .6;
+      flex-shrink: 0
+    }
+
+    .mcq-part-label.l1 {
+      color: #22c55e
+    }
+
+    .mcq-part-label.l2 {
+      color: var(--gold)
+    }
+
+    .mcq-part-label.l3 {
+      color: var(--red)
+    }
+
+    .mcq-qnum {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      flex-shrink: 0
+    }
+
+    .mcq-question {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.6;
+      color: rgba(224, 221, 242, .95);
+      margin-bottom: 10px;
+      flex-shrink: 0
+    }
+
+    .mcq-code {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.6;
+      background: rgba(0, 0, 0, .5);
+      border: 1px solid rgba(255, 255, 255, .09);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      color: rgba(224, 221, 242, .85);
+      white-space: pre;
+      overflow-x: auto;
+      flex-shrink: 0
+    }
+
+    /* OPTIONS */
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      justify-content: center
+    }
+
+    .opt-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, .04);
+      border: 1.5px solid rgba(255, 255, 255, .09);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(224, 221, 242, .75);
+      transition: all .2s;
+      text-align: left;
+      width: 100%;
+      position: relative;
+      overflow: hidden
+    }
+
+    .opt-btn:hover:not(:disabled) {
+      background: rgba(255, 208, 0, .07);
+      border-color: rgba(255, 208, 0, .3);
+      color: var(--text);
+      transform: translateX(3px)
+    }
+
+    .opt-btn:disabled {
+      cursor: default;
+      transform: none
+    }
+
+    .opt-letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .12);
+      color: var(--gold);
+      transition: all .2s
+    }
+
+    .opt-text {
+      flex: 1;
+      line-height: 1.45
+    }
+
+    .opt-icon {
+      font-size: 16px;
+      margin-left: auto;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: all .2s
+    }
+
+    /* Correct */
+    .opt-btn.correct {
+      background: rgba(34, 197, 94, .12);
+      border-color: rgba(34, 197, 94, .5);
+      color: #86efac;
+      animation: popIn .3s ease
+    }
+
+    .opt-btn.correct .opt-letter {
+      background: rgba(34, 197, 94, .2);
+      border-color: rgba(34, 197, 94, .5);
+      color: #22c55e
+    }
+
+    .opt-btn.correct .opt-icon {
+      opacity: 1;
+      color: #22c55e
+    }
+
+    /* Wrong */
+    .opt-btn.wrong {
+      background: rgba(255, 68, 68, .1);
+      border-color: rgba(255, 68, 68, .45);
+      color: #fca5a5;
+      animation: shake .3s ease
+    }
+
+    .opt-btn.wrong .opt-letter {
+      background: rgba(255, 68, 68, .2);
+      border-color: rgba(255, 68, 68, .5);
+      color: #ff6666
+    }
+
+    .opt-btn.wrong .opt-icon {
+      opacity: 1;
+      color: #ff4444
+    }
+
+    /* Reveal correct after wrong */
+    .opt-btn.reveal {
+      background: rgba(34, 197, 94, .07);
+      border-color: rgba(34, 197, 94, .3);
+      color: #86efac
+    }
+
+    .opt-btn.reveal .opt-letter {
+      background: rgba(34, 197, 94, .15);
+      border-color: rgba(34, 197, 94, .35);
+      color: #22c55e
+    }
+
+    .opt-btn.reveal .opt-icon {
+      opacity: .7;
+      color: #22c55e
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(.98)
+      }
+
+      50% {
+        transform: scale(1.01)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      25% {
+        transform: translateX(-6px)
+      }
+
+      75% {
+        transform: translateX(6px)
+      }
+    }
+
+    /* EXPLANATION BOX */
+    .explain-box {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.5;
+      animation: fadeIn .3s ease;
+      margin-top: 4px;
+      flex-shrink: 0
+    }
+
+    .explain-box.correct-exp {
+      background: rgba(34, 197, 94, .07);
+      border: 1px solid rgba(34, 197, 94, .2);
+      color: #86efac
+    }
+
+    .explain-box.wrong-exp {
+      background: rgba(255, 208, 0, .06);
+      border: 1px solid rgba(255, 208, 0, .18);
+      color: #fde68a
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* NAV BUTTONS */
+    .nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0
+    }
+
+    .btn-nav {
+      padding: 10px 24px;
+      border-radius: 10px;
+      border: 1.5px solid;
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .btn-prev {
+      background: transparent;
+      border-color: rgba(255, 255, 255, .12);
+      color: var(--muted)
+    }
+
+    .btn-prev:hover {
+      border-color: rgba(255, 255, 255, .3);
+      color: var(--text)
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-color: transparent;
+      color: var(--bg);
+      box-shadow: 0 4px 14px rgba(255, 208, 0, .25)
+    }
+
+    .btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 208, 0, .35)
+    }
+
+    .btn-next:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    .btn-skip {
+      background: transparent;
+      border-color: rgba(255, 255, 255, .1);
+      color: rgba(224, 221, 242, .4);
+      font-size: 11px;
+      padding: 8px 16px
+    }
+
+    .btn-skip:hover {
+      color: var(--muted);
+      border-color: rgba(255, 255, 255, .2)
+    }
+
+    /* LOADING */
+    .load-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 60px 20px;
+      text-align: center;
+      flex: 1
+    }
+
+    .spinner {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 208, 0, .15);
+      border-top-color: var(--gold);
+      animation: spin .9s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .load-topic {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: -.5px
+    }
+
+    .load-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono)
+    }
+
+    .prog-wrap {
+      width: 260px;
+      height: 4px;
+      background: rgba(255, 255, 255, .07);
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 2px;
+      width: 0%;
+      transition: width .4s
+    }
+
+    /* RESULTS SCREEN */
+    .results-screen {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%
+    }
+
+    .result-hero {
+      text-align: center
+    }
+
+    .result-grade {
+      font-size: clamp(48px, 8vw, 80px);
+      font-weight: 800;
+      letter-spacing: -3px;
+      line-height: 1
+    }
+
+    .result-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 8px;
+      font-family: var(--mono)
+    }
+
+    .result-cards {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%
+    }
+
+    .result-card {
+      flex: 1;
+      min-width: 120px;
+      padding: 14px;
+      border-radius: 10px;
+      text-align: center
+    }
+
+    .rc-correct {
+      background: rgba(34, 197, 94, .08);
+      border: 1px solid rgba(34, 197, 94, .2)
+    }
+
+    .rc-wrong {
+      background: rgba(255, 68, 68, .08);
+      border: 1px solid rgba(255, 68, 68, .2)
+    }
+
+    .rc-skip {
+      background: rgba(255, 208, 0, .08);
+      border: 1px solid rgba(255, 208, 0, .2)
+    }
+
+    .rc-num {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: var(--mono)
+    }
+
+    .rc-correct .rc-num {
+      color: #22c55e
+    }
+
+    .rc-wrong .rc-num {
+      color: #ff4444
+    }
+
+    .rc-skip .rc-num {
+      color: var(--gold)
+    }
+
+    .rc-label {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 3px;
+      font-family: var(--mono);
+      letter-spacing: 1px;
+      text-transform: uppercase
+    }
+
+    .retry-btn {
+      padding: 13px 32px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--bg);
+      box-shadow: 0 4px 20px rgba(255, 208, 0, .3);
+      transition: all .2s
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(255, 208, 0, .4)
+    }
+
+    /* ERR */
+    .err-card {
+      margin: 24px;
+      padding: 18px;
+      border-radius: 12px;
+      background: rgba(255, 68, 68, .07);
+      border: 1px solid rgba(255, 68, 68, .2);
+      color: #fca5a5;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      max-width: 720px
+    }
+
+    /* DRILL CHIPS — compact row */
+    .drill-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 1.5px solid;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      transition: all .2s;
+      user-select: none
+    }
+
+    .drill-chip:hover {
+      transform: translateY(-2px) scale(1.04);
+      filter: brightness(1.2)
+    }
+
+    .drill-chip-icon {
+      font-size: 14px
+    }
+
+    .drill-chip-label {
+      letter-spacing: .3px
+    }
+
+    .drill-chip-arr {
+      opacity: .5;
+      font-size: 10px
+    }
+
+    /* SUB MENU */
+    .submenu-wrap {
+      max-width: 700px;
+      width: 100%;
+      overflow-y: auto;
+      max-height: calc(100vh - 280px)
+    }
+
+    .submenu-wrap::-webkit-scrollbar {
+      width: 3px
+    }
+
+    .submenu-wrap::-webkit-scrollbar-thumb {
+      background: rgba(255, 208, 0, .2);
+      border-radius: 2px
+    }
+
+    .submenu-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-shrink: 0
+    }
+
+    .submenu-back {
+      padding: 5px 13px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .04);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: all .2s;
+      white-space: nowrap
+    }
+
+    .submenu-back:hover {
+      border-color: rgba(255, 208, 0, .3);
+      color: var(--gold)
+    }
+
+    .submenu-title {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--mono)
+    }
+
+    .submenu-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .sub-chip {
+      padding: 11px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, .03);
+      border: 1.5px solid rgba(255, 255, 255, .07);
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(224, 221, 242, .8);
+      font-family: var(--sans);
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .sub-chip:hover {
+      transform: translateX(4px);
+      background: rgba(255, 255, 255, .06);
+      border-color: rgba(255, 255, 255, .15)
+    }
+
+    .sub-chip-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      flex-shrink: 0;
+      width: 20px
+    }
+
+    .sub-chip-text {
+      flex: 1
+    }
+
+    .sub-chip-arrow {
+      font-size: 10px;
+      font-family: var(--mono);
+      white-space: nowrap;
+      opacity: .5;
+      transition: opacity .2s;
+      flex-shrink: 0
+    }
+
+    .sub-chip:hover .sub-chip-arrow {
+      opacity: 1
+    }
+    /* ── RESPONSIVE — TABLET ── */
+    @media (max-width: 768px) {
+      #landing {
+        padding: 16px 14px;
+        gap: 12px;
+      }
+
+      .hero-h1 {
+        font-size: clamp(20px, 5vw, 30px);
+        letter-spacing: -1px;
+      }
+
+      .hero-p {
+        font-size: 10px;
+        max-width: 340px;
+      }
+
+      .pyramid-row {
+        gap: 6px;
+      }
+
+      .drill-chip {
+        padding: 6px 10px;
+        font-size: 10px;
+        border-radius: 16px;
+      }
+
+      .drill-chip-icon { font-size: 12px; }
+
+      .search-wrap {
+        max-width: 420px;
+        gap: 6px;
+      }
+
+      .search-inp {
+        padding: 9px 12px;
+        font-size: 10px;
+      }
+
+      .btn-exam {
+        padding: 9px 16px;
+        font-size: 11px;
+      }
+
+      .quiz-body {
+        padding: 12px 16px;
+        padding-top: 55px;
+      }
+
+      .quiz-inner {
+        max-width: 100%;
+      }
+
+      .mcq-card {
+        padding: 14px 16px;
+        border-radius: 12px;
+      }
+
+      .mcq-question {
+        font-size: 13px;
+      }
+
+      .mcq-code {
+        font-size: 10px;
+        padding: 8px 10px;
+      }
+
+      .opt-btn {
+        padding: 10px 12px;
+        font-size: 11px;
+        gap: 10px;
+      }
+
+      .opt-letter {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+      }
+
+      .btn-nav {
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+
+      .topics-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 6px;
+      }
+
+      .topic-chip {
+        padding: 10px 10px;
+        font-size: 11px;
+      }
+
+      .submenu-wrap {
+        max-height: calc(100vh - 200px);
+      }
+
+      .sub-chip {
+        padding: 10px 12px;
+        font-size: 11px;
+      }
+
+      .result-cards {
+        gap: 8px;
+      }
+
+      .result-card {
+        min-width: 90px;
+        padding: 10px;
+      }
+
+      .rc-num { font-size: 22px; }
+      .rc-label { font-size: 9px; }
+
+      .results-screen {
+        padding: 20px;
+        gap: 16px;
+      }
+
+      .q-dots-row {
+        max-width: 260px;
+      }
+    }
+
+    /* ── RESPONSIVE — MOBILE ── */
+    @media (max-width: 480px) {
+      html, body {
+        overflow-x: hidden;
+      }
+
+      #landing {
+        padding: 60px 12px 16px;
+        gap: 10px;
+        justify-content: flex-start;
+      }
+
+      .hero {
+        margin-bottom: 4px;
+      }
+
+      .hero-tag {
+        font-size: 8px;
+        letter-spacing: 2px;
+      }
+
+      .hero-tag::before,
+      .hero-tag::after {
+        width: 18px;
+      }
+
+      .hero-h1 {
+        font-size: 22px;
+        letter-spacing: -1px;
+        margin-bottom: 4px;
+      }
+
+      .hero-p {
+        font-size: 10px;
+        max-width: 280px;
+        line-height: 1.5;
+      }
+
+      .pyramid-row {
+        gap: 5px;
+      }
+
+      .drill-chip {
+        padding: 5px 8px;
+        font-size: 9px;
+        border-radius: 14px;
+        gap: 4px;
+      }
+
+      .drill-chip-icon { font-size: 11px; }
+      .drill-chip-label { font-size: 9px; }
+      .drill-chip-arr { font-size: 8px; }
+
+      .search-wrap {
+        max-width: 100%;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .search-inp {
+        padding: 10px 12px;
+        font-size: 11px;
+        width: 100%;
+      }
+
+      .btn-exam {
+        padding: 10px 16px;
+        font-size: 12px;
+        width: 100%;
+      }
+
+      .quiz-body {
+        padding: 10px 12px;
+        padding-top: 50px;
+      }
+
+      .quiz-inner {
+        max-width: 100%;
+        gap: 8px;
+      }
+
+      .mcq-card {
+        padding: 12px 14px;
+        border-radius: 10px;
+      }
+
+      .mcq-question {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 8px;
+      }
+
+      .mcq-code {
+        font-size: 9.5px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+      }
+
+      .options-grid {
+        gap: 6px;
+      }
+
+      .opt-btn {
+        padding: 9px 10px;
+        font-size: 11px;
+        gap: 8px;
+        border-radius: 8px;
+      }
+
+      .opt-letter {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+        border-radius: 5px;
+      }
+
+      .btn-nav {
+        padding: 8px 14px;
+        font-size: 11px;
+      }
+
+      .btn-skip {
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+
+      .nav-row {
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .q-counter-row {
+        gap: 6px;
+      }
+
+      .q-counter {
+        font-size: 10px;
+      }
+
+      .q-counter strong {
+        font-size: 12px;
+      }
+
+      .q-dots-row {
+        max-width: 200px;
+        gap: 2px;
+      }
+
+      .q-dot {
+        width: 6px;
+        height: 6px;
+      }
+
+      .topics-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 5px;
+      }
+
+      .topic-chip {
+        padding: 8px 8px;
+        font-size: 10px;
+        letter-spacing: 0;
+      }
+
+      .submenu-wrap {
+        max-height: calc(100vh - 180px);
+      }
+
+      .submenu-header {
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .submenu-title {
+        font-size: 11px;
+      }
+
+      .submenu-back {
+        padding: 4px 10px;
+        font-size: 10px;
+      }
+
+      .sub-chip {
+        padding: 9px 10px;
+        font-size: 11px;
+        gap: 8px;
+      }
+
+      .sub-chip-arrow {
+        font-size: 9px;
+      }
+
+      .explain-box {
+        font-size: 10px;
+        padding: 8px 10px;
+      }
+
+      .results-screen {
+        padding: 16px 10px;
+        gap: 14px;
+      }
+
+      .result-grade {
+        font-size: clamp(36px, 10vw, 60px);
+      }
+
+      .result-sub {
+        font-size: 11px;
+      }
+
+      .result-cards {
+        gap: 6px;
+      }
+
+      .result-card {
+        min-width: 80px;
+        padding: 10px 6px;
+      }
+
+      .rc-num { font-size: 20px; }
+      .rc-label { font-size: 8px; }
+
+      .retry-btn {
+        padding: 11px 24px;
+        font-size: 12px;
+      }
+
+      .load-topic {
+        font-size: 15px;
+      }
+
+      .load-sub {
+        font-size: 10px;
+      }
+
+      .prog-wrap {
+        width: 200px;
+      }
+
+      .score-live {
+        font-size: 10px;
+        padding: 4px 10px;
+      }
+
+      .score-live .sc-num {
+        font-size: 12px;
+      }
+
+      .orb-a {
+        width: 300px;
+        height: 300px;
+        top: -130px;
+        right: -65px;
+      }
+
+      .orb-b {
+        width: 250px;
+        height: 250px;
+        bottom: -100px;
+        left: -70px;
+      }
+    }
+
+    /* ── RESPONSIVE — VERY SMALL ── */
+    @media (max-width: 360px) {
+      #landing {
+        padding: 55px 8px 12px;
+      }
+
+      .hero-h1 {
+        font-size: 19px;
+      }
+
+      .hero-p {
+        font-size: 9px;
+      }
+
+      .drill-chip {
+        padding: 4px 6px;
+        font-size: 8px;
+        gap: 3px;
+      }
+
+      .drill-chip-icon { font-size: 10px; }
+
+      .search-inp {
+        font-size: 10px;
+      }
+
+      .btn-exam {
+        font-size: 11px;
+      }
+
+      .mcq-question {
+        font-size: 12px;
+      }
+
+      .opt-btn {
+        font-size: 10px;
+        padding: 8px;
+      }
+
+      .btn-nav {
+        padding: 7px 10px;
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HAMBURGER BUTTON (mobile/tablet) -->
+  <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleMobileSidebar()" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- FLOATING SCORE BADGE -->
+  <div class="score-box" id="scoreBox">Score: 0 / 0</div>
+
+  <!-- FLOATING PART INDICATOR (shown during quiz) -->
+  <div class="floating-part-indicator" id="floatingPartIndicator">
+    <div class="fpi-badge p1" id="fpiBadge1" onclick="switchPart(1)"><span class="fpi-dot"></span> Basic</div>
+    <div class="fpi-badge p2" id="fpiBadge2" onclick="switchPart(2)"><span class="fpi-dot"></span> Intermediate</div>
+    <div class="fpi-badge p3" id="fpiBadge3" onclick="switchPart(3)"><span class="fpi-dot"></span> Advanced</div>
+  </div>
+
+  <!-- SIDEBAR NAV -->
+  <div class="icon-sidebar-zone" id="iconSidebarZone"></div>
+  <nav class="icon-sidebar" id="iconSidebar">
+    <div class="icon-sidebar-arrow" id="sidebarArrow" title="Navigation">
+      <div class="isb-brand"><div class="isb-brand-logo">QM</div><span>Quiz <em>Master</em></span></div>
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </div>
+    <div class="isb-section-title">Navigation</div>
+    <div class="icon-sidebar-items">
+      <div class="isb-item" data-tip="Home / Library" onclick="window.location.href='../book1/book_index.html'">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="isb-label">Home / Library</span>
+      </div>
+      <div class="isb-item" data-tip="Book 1 — Agent Factory" onclick="window.location.href='../book1/book_index.html'">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="isb-label">Book 1 — Agent Factory</span>
+      </div>
+      <div class="isb-item" data-tip="Book 2 — Chapter 12" onclick="window.location.href='../book2/book_index.html'">
+        <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span class="isb-label">Book 2 — Chapter 12</span>
+      </div>
+      <div class="isb-item active" data-tip="PyMaster Tutor">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        <span class="isb-label">PyMaster Tutor</span>
+      </div>
+    </div>
+    <div class="icon-sidebar-bottom">
+      <div class="isb-item" data-tip="Help" onclick="alert('Quiz Master — PIAIC Honhar Jawan\n\nPanaversity Agentic AI Course')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="isb-label">Help</span>
+      </div>
+      <div class="isb-item" data-tip="Log In / Out" onclick="typeof openLoginModalPy==='function'?openLoginModalPy():alert('Login')">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="isb-label">Log In / Out</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModalPy" onclick="closeLoginModalPyOutside(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeLoginModalPy()">✕</button>
+      <div class="modal-logo">AF</div>
+      <div class="modal-title">Welcome Back</div>
+      <div class="modal-sub">PANAVERSITY · QUIZ MASTER</div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabLoginPy" onclick="switchTabPy('login')">LOGIN</button>
+        <button class="modal-tab" id="tabSignupPy" onclick="switchTabPy('signup')">SIGN UP</button>
+      </div>
+      <div id="formLoginPy">
+        <div class="modal-field"><label class="modal-label">Email</label><input class="modal-input" id="loginEmailPy" type="email" placeholder="your@email.com"></div>
+        <div class="modal-field"><label class="modal-label">Password</label><input class="modal-input" id="loginPassPy" type="password" placeholder="••••••••"></div>
+        <button class="modal-btn" onclick="doLoginPy()">Login →</button>
+        <div class="modal-msg" id="loginMsgPy"></div>
+      </div>
+      <div id="formSignupPy" style="display:none;">
+        <div class="modal-field"><label class="modal-label">Name</label><input class="modal-input" id="signupNamePy" type="text" placeholder="Your name"></div>
+        <div class="modal-field"><label class="modal-label">Email</label><input class="modal-input" id="signupEmailPy" type="email" placeholder="your@email.com"></div>
+        <div class="modal-field"><label class="modal-label">Password</label><input class="modal-input" id="signupPassPy" type="password" placeholder="Min 6 characters"></div>
+        <button class="modal-btn" onclick="doSignupPy()">Create Account →</button>
+        <div class="modal-msg" id="signupMsgPy"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API KEY MODAL -->
+  <div class="modal-overlay" id="apiKeyModal" onclick="if(event.target===this)closeApiKeyModal()">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeApiKeyModal()">✕</button>
+      <div class="modal-logo">🔑</div>
+      <div class="modal-title">Groq API Key Required</div>
+      <div class="modal-sub">Enter your API key to generate quizzes. It's stored only in your browser session.</div>
+      <div class="modal-field">
+        <label class="modal-label">API Key</label>
+        <input class="modal-input" id="apiKeyInput" type="password" placeholder="gsk_xxxxxxxxxxxxxxxx">
+      </div>
+      <button class="modal-btn" onclick="submitApiKey()">Save Key →</button>
+      <div class="modal-msg" id="apiKeyMsg"></div>
+      <div style="margin-top:12px;font-size:0.75rem;opacity:0.6;text-align:center;">
+        Get your free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="color:#a78bfa;">console.groq.com/keys</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-grid"></div>
+
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+
+  <div id="app">
+    <!-- HEADER -->
+    <header class="app-hdr">
+      <div class="logo-wrap">
+        <div class="logo-box">Py</div>
+        <div>
+          <div class="logo-title"><em>PyMaster</em> Tutor</div>
+          <div class="logo-sub">INTERACTIVE EXAM · QUIZ MASTER</div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <div class="score-live d-none" id="scoreLive">
+          Score: <span class="sc-num" id="scoreNum">0</span>/<span id="scoreTot">0</span>
+        </div>
+        <button class="btn-ghost d-none" id="btnBack">← New Topic</button>
+        <div class="hdr-part hp-basic" id="hdrPart1" onclick="switchPart(1)"><span class="hdr-part-dot"></span><span
+            class="hdr-part-title">Basic</span><span class="hdr-part-range">Q1–15</span></div>
+        <div class="hdr-part hp-inter" id="hdrPart2" onclick="switchPart(2)"><span class="hdr-part-dot"></span><span
+            class="hdr-part-title">Intermediate</span><span class="hdr-part-range">Q16–35</span></div>
+        <div class="hdr-part hp-adv" id="hdrPart3" onclick="switchPart(3)"><span class="hdr-part-dot"></span><span
+            class="hdr-part-title">Advanced</span><span class="hdr-part-range">Q36–50</span></div>
+      </div>
+    </header>
+
+    <!-- LANDING -->
+    <div id="landing">
+      <div class="hero">
+        <div class="hero-tag">Interactive Exam Mode</div>
+        <h1 class="hero-h1">Test Your <span class="ac">Python</span><br /><span class="ac2">Live!</span></h1>
+        <p class="hero-p">Choose an option — instantly see ✅ or ❌. 50 MCQs from Basic to Exam Destroyer level.</p>
+      </div>
+
+      <!-- DRILL DOWN -->
+      <div id="drillHome" class="drill-row"></div>
+      <div id="drillSub" style="display:none" class="submenu-wrap"></div>
+
+      <div class="topics-grid" id="topicsGrid"></div>
+      <div class="search-wrap" id="searchBar">
+        <input class="search-inp" id="searchInp" placeholder="Type any Python topic… e.g. 'List', 'OOP'"
+          autocomplete="off" />
+        <button class="btn-exam" id="btnStart" disabled>Start Exam →</button>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz">
+      <div class="quiz-topbar">
+        <div class="topic-label" id="quizTopicLabel">📋 Topic</div>
+        <div class="part-tabs">
+          <button class="part-tab p1" id="tab1" onclick="switchPart(1)"><span class="dot-s"
+              id="dot1"></span>Basic</button>
+          <button class="part-tab p2" id="tab2" onclick="switchPart(2)"><span class="dot-s"
+              id="dot2"></span>Intermediate</button>
+          <button class="part-tab p3" id="tab3" onclick="switchPart(3)"><span class="dot-s"
+              id="dot3"></span>Advanced</button>
+        </div>
+      </div>
+      <div class="quiz-progress">
+        <div class="quiz-progress-fill" id="quizProgFill"></div>
+      </div>
+      <div class="quiz-body">
+        <div class="quiz-inner" id="quizInner"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE VERTICAL QUIZ CONTROLS (desktop) -->
+  <div class="right-controls" id="rightControls" style="display:none;">
+    <button class="rc-btn" id="rcPrev" data-tip="Previous" onclick="navigate(-1)">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="rc-btn" id="rcSkip" data-tip="Skip" onclick="skipQuestion()">
+      <svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+    </button>
+    <button class="rc-btn primary" id="rcNext" data-tip="Next" onclick="navigate(1)">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <div class="rc-divider"></div>
+    <button class="rc-btn" id="rcChapters" data-tip="Topics" onclick="goLanding()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="./config.js"></script>
+  <script>
+    // Topics that have sub-menus (removed from quick chips)
+    const DRILL_KEYS = ["Program", "Python", "Variables", "String", "List", "Tuple", "Set", "Frozenset", "Dictionary", "Boolean", "Operators", "Control Flow", "Loops", "Functions", "Exception Handling", "File Handling", "Modules", "OOP", "Django", "Flask", "FastAPI"];
+
+    const QUICK_TOPICS = [];
+
+    // DRILL-DOWN DATA
+    const DRILL = {
+      "Program": {
+        icon: "💻", color: "#a78bfa",
+        desc: "Programming fundamentals & concepts",
+        children: [
+          {
+            label: "Program — Definition & Types",
+            topic: "What is a Program - definition of program, types of programs system software application software, how computers execute programs step by step, source code vs machine code, role of CPU and memory in execution"
+          },
+          {
+            label: "Types of Programming Languages",
+            topic: "Types of Programming Languages - low level languages machine code assembly, high level languages Python Java C++, compiled languages vs interpreted languages, differences examples advantages disadvantages, where Python fits in this classification"
+          },
+        ]
+      },
+      "Python": {
+        icon: "🐍", color: "#ffd000",
+        desc: "Python language fundamentals",
+        children: [
+          {
+            label: "Python Installation & Setup",
+            topic: "Python Installation and Setup - downloading Python from python.org, installation steps on Windows, setting PATH environment variable, verifying installation with python --version in terminal, pip installation, running first Python program in terminal"
+          },
+          {
+            label: "IDE — What & Why",
+            topic: "IDE Integrated Development Environment - what is an IDE, why use IDE vs plain text editor, popular Python IDEs VS Code PyCharm Thonny IDLE Jupyter, how to install VS Code, opening Python file, running code inside IDE"
+          },
+          {
+            label: "Main Features of an IDE",
+            topic: "Main Features of an IDE - code editor with syntax highlighting, auto-completion and IntelliSense, integrated debugger breakpoints step through code, integrated terminal, file explorer, extensions and plugins, error underlining, code formatting, version control integration with Git"
+          },
+          {
+            label: "How Python Works",
+            topic: "How Python Works - Python is an interpreted language, source code .py file, Python interpreter reads line by line, compilation to bytecode .pyc files, CPython implementation, Python Virtual Machine PVM executes bytecode, difference between compiled and interpreted execution, why Python is slower than C, GIL global interpreter lock basics"
+          },
+        ]
+      },
+      "Variables": {
+        icon: "📦", color: "#34d399",
+        desc: "Variables, scope, memory & conventions",
+        children: [
+          {
+            label: "Creating Variables & Assigning Values",
+            topic: "Python Creating Variables and Assigning Values - syntax of variable assignment using = operator, single assignment, multiple assignment on one line, assigning same value to multiple variables a=b=c=10, variable reassignment, type of variable determined at runtime, no declaration needed in Python, dynamic typing"
+          },
+          {
+            label: "Why Variables Exist",
+            topic: "Python Why Variables Exist - purpose of variables in programming, storing data for reuse, making code readable and maintainable, avoiding repetition of values, variables as labeled containers in memory, real world analogy examples of variables"
+          },
+          {
+            label: "Rules for Naming Variables",
+            topic: "Python Rules for Naming Variables - must start with letter or underscore, cannot start with digit, can contain letters digits underscores, case sensitive (age vs Age vs AGE are different variables), cannot use Python reserved keywords as names, no spaces allowed, valid vs invalid variable name examples, common naming mistakes"
+          },
+          {
+            label: "Naming Conventions in Python",
+            topic: "Python Naming Conventions - snake_case for variables and functions (my_variable, calculate_total), camelCase (myVariable) used in other languages not preferred in Python, PascalCase for class names (MyClass, BankAccount), SCREAMING_SNAKE_CASE for constants (MAX_SIZE, PI), single underscore _var for internal use, double underscore __var for name mangling private, dunder __var__ for magic methods, PEP 8 style guidelines"
+          },
+          {
+            label: "Assigning Different Values",
+            topic: "Python Assigning Different Values - assigning integer float string boolean list to variable, reassigning completely different type to same variable (dynamic typing Python allows this), multiple assignment a,b,c = 1,2,3 tuple unpacking, swapping variables a,b = b,a without temp variable, augmented assignment operators += -= *= /= //= %= **= examples"
+          },
+          {
+            label: "Delete Variable using del",
+            topic: "Python del keyword - syntax del variable_name, deleting a variable removes it from namespace, NameError raised when accessing deleted variable, deleting list elements with del list[index], deleting dict keys with del dict[key], del vs assigning None (del removes name, None just assigns empty value), when and why to use del, garbage collection triggered after del when reference count reaches zero"
+          },
+          {
+            label: "How Variables Work in Memory",
+            topic: "Python Memory Model - variable name is just a label (reference) pointing to object in memory NOT the value itself, id() function returns memory address of object, multiple variables pointing to same object (aliasing), integer caching Python caches small integers -5 to 256 (is operator returns True), is vs == difference (identity vs equality), changing variable value creates NEW object old one may be garbage collected, variables vs constants (Python has no true constants use UPPER_CASE convention), how different types int float str list occupy memory differently, reference counting and garbage collection basics"
+          },
+          {
+            label: "Variable Scope — Local vs Global",
+            topic: "Python Variable Scope - local scope: variables defined inside function only accessible there, global scope: variables defined outside all functions accessible everywhere, LEGB rule order: Local Enclosing Global Built-in, accessing global variable inside function (read only works), modifying global variable inside function requires global keyword, nonlocal keyword for nested functions (enclosing scope), scope errors: NameError (not found) UnboundLocalError (assigned later in function), why scope matters for clean modular code"
+          },
+          {
+            label: "Python Type Hints",
+            topic: "Python Type Hints - Python is dynamically typed but supports optional type hints (PEP 484), syntax for variable: variable_name: type = value, function parameter hints def func(name: str, age: int) -> str:, why type hints: improve readability, IDE autocomplete and error detection, documentation, type hints are NOT enforced at runtime (just hints), common type hint types: int str float bool list dict tuple Optional, using mypy tool for static type checking"
+          },
+          {
+            label: "Indentation & Comments",
+            topic: "Python Indentation and Comments - indentation is MANDATORY syntax in Python (not just style like other languages), 4 spaces per level recommended by PEP 8 (not tabs to avoid TabError), IndentationError when wrong indentation, TabError when mixing tabs and spaces, nested indentation increases by 4 each level, single line comment with # hash, inline comment after code, multi-line comment workaround using triple quotes (not official), docstrings with triple quotes for functions classes modules, __doc__ attribute to access docstring, why comments matter (explain WHY not WHAT), TODO FIXME NOTE comment conventions"
+          },
+        ]
+      },
+      "String": {
+        icon: "📝", color: "#38bdf8",
+        desc: "Text data type & all operations",
+        children: [
+          {
+            label: "String — Syntax & Quotes",
+            topic: "Python String syntax and quotes - single quotes 'hello', double quotes \"hello\" (use when string contains apostrophe), triple single quotes for multiline, triple double quotes for multiline and docstrings, when to use each type, raw strings r prefix (backslash not escape), escape characters: \\n newline \\t tab \\\\ backslash \\' single quote \\\", string immutability cannot modify characters, string as sequence of characters, type() returns str"
+          },
+          {
+            label: "Creating Strings",
+            topic: "Python Creating Strings - all ways to create strings, using single quotes, using double quotes, using triple quotes for multiline strings, str() constructor to convert int float bool list to string, empty string '' or \"\", string from input() always returns str, chr() converts ASCII number to character, ord() converts character to ASCII number, string repetition with * operator, string from list using join(), string from bytes with decode()"
+          },
+          {
+            label: "Accessing Characters of a String",
+            topic: "Python String Accessing Characters - positive indexing starting at 0 (first char), negative indexing starting at -1 (last char), accessing first character string[0], accessing last character string[-1], IndexError raised when index out of valid range, strings are immutable so cannot assign string[0]='x' raises TypeError, iterating all characters with for loop, using len() to get string length, checking if character exists with in operator"
+          },
+          {
+            label: "String Slicing",
+            topic: "Python String Slicing - slice syntax string[start:stop:step], start index is INCLUSIVE stop index is EXCLUSIVE, default start is 0 default stop is len(string) default step is 1, negative indices work in slicing, reverse entire string with [::-1], skip every other character with [::2], slicing NEVER raises IndexError (adjusts automatically), slicing returns NEW string original unchanged, examples with all combinations of start stop step"
+          },
+          {
+            label: "String Formatting",
+            topic: "Python String Formatting - old style % operator: %s string %d integer %f float (legacy), .format() method: positional {0} {1} and keyword {name} arguments, f-strings (Python 3.6+): f'Hello {name}' most modern and readable, format specifiers: width {value:10} precision {value:.2f} alignment {value:<10} {value:>10} {value:^10}, number formatting with commas {value:,}, combining expressions inside f-strings f'{2+3}' f'{name.upper()}', multi-line f-strings"
+          },
+          {
+            label: "Methods in String",
+            topic: "Python String Methods complete - case: upper() lower() title() capitalize() swapcase(), whitespace: strip() lstrip() rstrip(), search: find() returns -1 if not found, index() raises ValueError if not found, count() occurrences, startswith() endswith(), modification: replace(old,new,count), split(sep) returns list, rsplit(), join(iterable) joins list into string, splitlines(), validation: isalpha() isdigit() isalnum() isspace() isupper() islower() istitle(), formatting: center(width,fill) ljust() rjust() zfill() - each method syntax return value and tricky behaviors"
+          },
+        ]
+      },
+      "List": {
+        icon: "📋", color: "#22c55e",
+        desc: "Ordered, mutable, indexed collection",
+        children: [
+          {
+            label: "List — Ordered, Mutable, Dynamic",
+            topic: "Python List characteristics - ordered meaning insertion order is preserved and maintained, mutable meaning elements can be changed added removed after creation, indexed meaning access by position number starting at 0, dynamic size can grow or shrink automatically, allows duplicate values, can hold heterogeneous types (int str bool list dict in same list), list is a sequence type, when to use list vs tuple vs set"
+          },
+          {
+            label: "Creating a List",
+            topic: "Python Creating Lists - square brackets [] syntax, empty list [], list() constructor, list from string list('hello') gives characters, list from range() list(range(5)), nested lists (list inside list), list with mixed types, list repetition with * operator [0]*5, list comprehension for creation [x for x in range(10)], copying a list with list() or [:] or .copy() (shallow copy), list from tuple from set"
+          },
+          {
+            label: "Accessing List Elements",
+            topic: "Python Accessing List Elements - positive indexing [0] to [len-1], negative indexing [-1] is last element [-2] second last, IndexError when index out of range, accessing nested list elements with chained index list[i][j], first element list[0] last element list[-1], iterating all elements with for loop, enumerate(list) gives index and value together, len() function for list length"
+          },
+          {
+            label: "Modifying a List",
+            topic: "Python Modifying List - changing element by index list[i]=new_value, append(x) adds single element to end, insert(index, x) adds at specific position shifts others right, extend(iterable) adds all elements from iterable, remove(x) removes FIRST occurrence raises ValueError if not found, pop() removes and returns LAST element, pop(i) removes and returns at index, del list[i] deletes by index, del list[start:stop] deletes slice range, clear() removes all elements leaves empty list"
+          },
+          {
+            label: "List Slicing",
+            topic: "Python List Slicing - same syntax [start:stop:step] as string slicing, returns NEW list original unchanged, slice assignment list[1:3]=[7,8,9] replaces elements (can change length), del list[1:3] deletes a range of elements, copy entire list with list[:], reverse list with list[::-1], step to skip elements list[::2], nested list slicing, difference from string (list slice assignment allowed string not)"
+          },
+          {
+            label: "Sorting a List",
+            topic: "Python Sorting List - sort() method sorts list IN PLACE modifies original returns None, sorted() built-in function returns NEW sorted list original UNCHANGED, both accept reverse=True for descending order, key parameter accepts function for custom sort key, sort by string length key=len, sort with lambda key=lambda x: x[1], sort list of tuples, sort() vs sorted() when to use each, sort() only works on list sorted() works on any iterable, stability of Python sort (TimSort), TypeError when sorting mixed types"
+          },
+          {
+            label: "List Methods in Python",
+            topic: "Python List Methods complete - append(x) adds to end returns None, insert(i,x) adds at position returns None, extend(iterable) adds multiple returns None, remove(x) removes first occurrence raises ValueError returns None, pop() removes last returns element, pop(i) removes at index returns element, clear() empties list returns None, index(x) returns first index raises ValueError, count(x) returns occurrences, sort(key,reverse) in-place returns None, reverse() in-place returns None, copy() returns shallow copy - for each: whether modifies original, return value, possible errors"
+          },
+        ]
+      },
+      "Tuple": {
+        icon: "🔒", color: "#fb923c",
+        desc: "Immutable, ordered, hashable sequence",
+        children: [
+          {
+            label: "Tuple — Syntax & Immutability",
+            topic: "Python Tuple - syntax using parentheses (1,2,3), immutable cannot be changed modified after creation (TypeError if attempted), ordered insertion order maintained, indexed access by position number, hashable can be used as dictionary key or element inside set (list cannot), performance advantage over list (faster iteration less memory footprint), allows duplicate values, can hold heterogeneous types, tuple packing a=1,2,3 and unpacking a,b,c=tuple"
+          },
+          {
+            label: "When to Use Tuple vs List",
+            topic: "Python Tuple vs List - use tuple when: data should NOT change (coordinates x,y, RGB colors, database row, function returning multiple values, days of week), use list when: data needs modification (shopping cart, growing collection), tuple as dictionary key (list raises TypeError), tuple in sets (list cannot be in set), tuple slightly faster than list same data, semantic meaning: tuple=record of related items, list=collection of similar items, memory comparison"
+          },
+          {
+            label: "Why Are Tuples Immutable?",
+            topic: "Python Why Tuples Are Immutable - immutability is a deliberate design decision, memory efficiency (fixed size allocated upfront), hashability requires immutability (mutable objects cannot be hashed), thread safety (immutable objects safe to share between threads), TypeError: tuple object does not support item assignment, IMPORTANT: tuples CAN contain mutable objects (list inside tuple - tuple is immutable but list inside can change), immutability is at tuple structure level not element level, examples demonstrating this distinction"
+          },
+          {
+            label: "Creating a Tuple",
+            topic: "Python Creating Tuples - parentheses syntax (1,2,3), tuple packing without parentheses 1,2,3, CRITICAL: single element tuple requires trailing comma (42,) NOT (42) which is just parentheses, empty tuple () or tuple(), tuple() constructor from any iterable, nested tuples (tuple of tuples), tuple from list tuple([1,2,3]), tuple from string gives characters, tuple from range(), common mistake: (1) is int not tuple, (1,) is correct single element tuple"
+          },
+          {
+            label: "Accessing Tuple Elements",
+            topic: "Python Accessing Tuple Elements - positive indexing [0] first element, negative indexing [-1] last element, IndexError when out of range, accessing nested tuple elements with chained indexing t[0][1], tuple unpacking a,b,c = (1,2,3) each variable gets one value, extended unpacking first,*rest = (1,2,3,4), iterating with for loop, using enumerate() for index and value, len() min() max() sum() work on tuples, CANNOT modify accessed elements (immutable)"
+          },
+          {
+            label: "Tuple Slicing",
+            topic: "Python Tuple Slicing - same syntax [start:stop:step] as list and string, returns NEW tuple (not list), original tuple UNCHANGED, reverse tuple with [::-1] returns reversed tuple, step slicing, default values same as list/string, slicing single-element tuple gives tuple, IMPORTANT difference: cannot do slice ASSIGNMENT on tuple (tuple[1:3]=[7,8] raises TypeError unlike list), slicing is read-only for tuples"
+          },
+          {
+            label: "Tuple Methods in Python",
+            topic: "Python Tuple Methods - only TWO built-in methods: count(value) returns number of times value appears in tuple, index(value) returns index of FIRST occurrence raises ValueError if not found, WHY only two methods: immutability means no add/remove/sort/reverse/clear possible, using sorted(tuple) returns LIST not tuple, using list(tuple) to convert then use list methods then tuple() back, len() min() max() sum() in() work but are not methods, all() any() for boolean tuples"
+          },
+        ]
+      },
+      "Set": {
+        icon: "🔵", color: "#f472b6",
+        desc: "Unordered, unique, mutable collection",
+        children: [
+          {
+            label: "Set — Syntax, Characteristics & Uses",
+            topic: "Python Set - syntax using curly braces {1,2,3}, key characteristics: unordered output order not guaranteed, unique elements no duplicates allowed (automatically removed), mutable can add and remove elements, no indexing cannot use [] to access by position, elements must be immutable/hashable (int str float tuple allowed, list dict NOT allowed as elements), mathematical set operations: union intersection difference symmetric_difference, real-world uses: removing duplicates from list, fast O(1) membership testing with in, finding common elements between two collections"
+          },
+          {
+            label: "Creating Sets",
+            topic: "Python Creating Sets - sets hold only immutable objects (int float string tuple, NOT list or dict as elements), set can hold multiple data types at once {1, 'hello', 3.14, True}, set is unordered so printed output order varies and is not guaranteed, set CANNOT be changed directly using [] brackets (no indexing TypeError), creating with curly braces {1,2,3}, using set() constructor set([1,2,3]), IMPORTANT empty set MUST use set() because {} creates empty dict not empty set, creating from list automatically removes all duplicates, creating from string gives individual unique characters"
+          },
+          {
+            label: "Different Methods in Set",
+            topic: "Python Set Methods complete - add(elem) adds single element, update(iterable) adds multiple elements, remove(elem) raises KeyError if not found, discard(elem) no error if not found, pop() removes and returns random element (unpredictable), clear() removes all elements, copy() shallow copy, union(other) or | combines sets, intersection(other) or & common elements, difference(other) or - elements in first not second, symmetric_difference(other) or ^ elements in either not both, intersection_update() modifies in place, difference_update(), symmetric_difference_update(), issubset(other), issuperset(other), isdisjoint(other) returns True if no common - each with syntax return value examples"
+          },
+          {
+            label: "union() Method and | Operator",
+            topic: "Python Set union() method and | pipe operator - union combines ALL unique elements from both sets and returns NEW set, syntax: set1.union(set2) equivalent to set1 | set2, union with multiple sets: set1.union(set2, set3) same as set1|set2|set3, union does NOT modify original sets (returns new set), DIFFERENCE between union() and update(): union() returns new set, update() modifies set in place, union with empty set returns copy of original, union with overlapping elements keeps only unique, examples with output showing original sets unchanged"
+          },
+          {
+            label: "discard() and remove() Method",
+            topic: "Python Set discard() vs remove() - remove(elem) raises KeyError if element NOT found in set (use when sure element exists), discard(elem) does NOT raise any error if element missing - silently does nothing (use when unsure), both methods modify set IN PLACE and return None, both have O(1) average time complexity, when to use remove: when missing element is a bug you want to catch, when to use discard: safe optional deletion, comparison code examples showing KeyError with remove() vs silent success with discard(), pattern: discard for optional cleanup remove for required deletion"
+          },
+        ]
+      },
+      "Frozenset": {
+        icon: "❄️", color: "#67e8f9",
+        desc: "Immutable, hashable set",
+        children: [
+          {
+            label: "Frozenset — What & Why",
+            topic: "Python Frozenset - frozenset is an IMMUTABLE version of set, created using frozenset() constructor (no literal syntax like set has {}), frozenset({1,2,3}) or frozenset([1,2,3]) or frozenset('hello'), why frozenset exists: it is hashable so can be used as dictionary key or as element inside another set (regular mutable set cannot), basic creation examples, printing shows frozenset({...}), empty frozenset(), type() returns frozenset"
+          },
+          {
+            label: "Key Features of Frozenset",
+            topic: "Python Frozenset Key Features - immutable: cannot add or remove elements after creation (no add remove discard update clear pop), hashable: has __hash__ method so can be dict key and set element, unordered: no indexing cannot use [], supports all READ-ONLY operations: union() intersection() difference() symmetric_difference() issubset() issuperset() isdisjoint() copy(), does NOT support mutating methods: add() remove() discard() update() clear() pop() - raises AttributeError, TypeError when trying [] indexing, thread-safe due to immutability, can be element of another set or frozenset, performance benefits"
+          },
+          {
+            label: "Difference Between Set and Frozenset",
+            topic: "Python Set vs Frozenset complete comparison table - mutability: set IS mutable (add remove clear), frozenset is NOT mutable, hashability: frozenset IS hashable, set is NOT hashable, as dictionary key: frozenset YES, set raises TypeError unhashable type, as element inside set: frozenset YES, set raises TypeError, available methods: set has add() remove() discard() update() clear() pop(), frozenset does NOT have these, creation syntax: set() or {1,2,3} vs frozenset() only no literal syntax, when to use each: frozenset for constant sets used as keys or in other sets, code examples demonstrating every single difference"
+          },
+        ]
+      },
+      "Dictionary": {
+        icon: "📖", color: "#fbbf24",
+        desc: "Key-value pairs, ordered, mutable",
+        children: [
+          {
+            label: "Dictionary — Syntax & Characteristics",
+            topic: "Python Dictionary - syntax using curly braces {key:value, key:value}, ordered meaning insertion order is maintained and remembered (Python 3.7+), mutable can add update and delete items after creation, un-indexed meaning CANNOT access by position number only by key, duplicate keys NOT allowed (if same key added twice last value overwrites first), keys must be unique within one dictionary, keys must be hashable immutable types (str int float tuple), values can be any type including another dict (nested), empty dictionary {}"
+          },
+          {
+            label: "Creating a Dictionary",
+            topic: "Python Creating Dictionary - all methods with examples: curly braces {key:val}, dict() constructor with keyword arguments dict(name='Ali', age=25), dict() with list of tuples dict([(k,v)]), dict.fromkeys(keys_list, default_value) creates dict with same value for all keys, zip(keys_list, values_list) combines two lists into dict, dictionary comprehension {k:v for k,v in iterable}, empty dictionary {}, nested dictionary {outer: {inner: value}}, creating from another dict dict(existing_dict)"
+          },
+          {
+            label: "Accessing Values",
+            topic: "Python Dictionary Accessing Values - bracket notation dict[key] raises KeyError if key missing, .get(key) returns None if missing NO KeyError, .get(key, default) returns specified default if key missing, .keys() returns dict_keys VIEW object of all keys, .values() returns dict_values VIEW object of all values, .items() returns dict_items VIEW of all key-value pairs as tuples, IMPORTANT: keys() values() items() return LIVE VIEWS (update when dict changes), accessing nested dict dict[outer][inner], checking key existence with in operator, len() counts key-value pairs"
+          },
+          {
+            label: "Modifying a Dictionary",
+            topic: "Python Modifying Dictionary - adding new key-value pair dict[new_key]=value (if key exists it updates), updating existing value dict[existing_key]=new_value, .update(another_dict) merges another dict into current (existing keys get overwritten), .update(key=value) keyword argument style, .setdefault(key, default) adds key with default ONLY if key does NOT already exist (returns value), modifying nested dictionary dict[outer][inner]=new_value, examples showing state before and after each modification"
+          },
+          {
+            label: "Deleting Items",
+            topic: "Python Dictionary Deleting Items - del dict[key] removes specific key-value pair raises KeyError if key not found, .pop(key) removes key and RETURNS its value raises KeyError if missing, .pop(key, default) safe deletion returns default value if key missing NO error, .popitem() removes and returns the LAST inserted key-value pair as tuple (Python 3.7+ guaranteed last), .clear() removes ALL items dict becomes empty {} but dict object still exists, del dict_name deletes the entire dictionary variable (NameError if accessed after), comparison of all five deletion methods with when to use each"
+          },
+          {
+            label: "Dictionary Methods",
+            topic: "Python Dictionary Methods complete - get(key, default), keys() returns live view, values() returns live view, items() returns live view of tuples, update(other) merges, pop(key, default) removes returns value, popitem() removes last returns tuple, clear() empties dict, copy() shallow copy, setdefault(key, default) add if missing, fromkeys(keys, value) class method creates new dict - for EACH method: exact syntax, parameters, return value, whether modifies original, TRICKY behaviors: live views update when dict changes, shallow copy means nested objects are shared, fromkeys with mutable default pitfall, examples with output"
+          },
+        ]
+      },
+      "Boolean": {
+        icon: "⚡", color: "#a3e635",
+        desc: "True/False, logical operations",
+        children: [
+          {
+            label: "Boolean — True & False",
+            topic: "Python Boolean data type - True and False values (capital T and F required), bool is subclass of int (True==1 False==0 in arithmetic), bool() function converts to boolean, truthy values: non-zero numbers non-empty strings non-empty collections, falsy values: 0 0.0 '' [] {} () set() None False, bool in arithmetic True+True=2, type(True) is bool, isinstance(True, int) returns True, comparing with == vs is for booleans"
+          },
+          {
+            label: "Comparison Operators",
+            topic: "Python Comparison Operators all return bool - == equal to, != not equal to, > greater than, < less than, >= greater than or equal to, <= less than or equal to, chained comparisons 1 < x < 10 (Pythonic, checks both), comparing strings lexicographically by ASCII value, comparing different types can raise TypeError, is vs == (is checks identity same object, == checks equal value), all comparison operators return True or False"
+          },
+          {
+            label: "Logical Operators",
+            topic: "Python Logical Operators - and: returns FIRST FALSY value or last value if all truthy, or: returns FIRST TRUTHY value or last value if all falsy, not: returns opposite bool (always True or False), short-circuit evaluation (and stops at first False, or stops at first True), operator precedence: not > and > or, truth tables for all combinations, using logical operators with non-bool values (returns original values not just True/False), combining multiple conditions"
+          },
+          {
+            label: "Identity & Membership Operators",
+            topic: "Python Identity and Membership Operators - is operator: checks if two variables point to SAME object in memory (uses id()), is not operator, == operator: checks if VALUES are equal (different objects can be ==), integer caching: Python caches -5 to 256 so is works for these, in operator: checks if element exists in sequence, not in operator, in operator with string list tuple dict set, performance: in with set O(1) vs list O(n), is used for None check (if x is None preferred)"
+          },
+        ]
+      },
+      "Operators": {
+        icon: "🔧", color: "#f97316",
+        desc: "All Python operators & operands",
+        children: [
+          {
+            label: "Operator & Operand — Overview & Types",
+            topic: "Python Operator and Operand - what is an operator (symbol that performs an operation), what is an operand (the value the operator acts on), unary operator (one operand like -x or not x), binary operator (two operands like a+b), types of operators in Python: arithmetic, comparison/relational, logical, assignment, augmented assignment, bitwise, membership (in not in), identity (is is not), operator precedence table overview"
+          },
+          {
+            label: "Arithmetic Operators",
+            topic: "Python Arithmetic Operators - addition +, subtraction -, multiplication *, true division / (ALWAYS returns float even 4/2=2.0), floor division // (removes decimal rounds toward negative infinity), modulus % (remainder after division), exponentiation ** (power, right to left associativity), unary minus -x, PEMDAS/BODMAS precedence: Parentheses Exponent Multiply Divide Add Subtract, integer vs float results, ZeroDivisionError on division by zero, negative modulus behavior"
+          },
+          {
+            label: "Assignment Operators",
+            topic: "Python Assignment Operators - basic assignment =, augmented operators: += add and assign, -= subtract assign, *= multiply assign, /= divide assign, //= floor divide assign, %= modulus assign, **= power assign, &= bitwise AND assign, |= bitwise OR assign, ^= XOR assign, >>= right shift assign, <<= left shift assign, walrus operator := (Python 3.8+) assigns and returns value in one expression (used in while conditions and comprehensions), chained assignment a=b=c=10"
+          },
+          {
+            label: "Bitwise Operators",
+            topic: "Python Bitwise Operators - operate on binary representation of integers, AND & (both bits must be 1), OR | (at least one bit is 1), XOR ^ (bits must be different), NOT ~ (flips all bits, formula: ~x = -(x+1)), left shift << (multiply by 2 per shift), right shift >> (divide by 2 per shift), practical uses: checking even/odd with &1, multiplying/dividing by powers of 2 with shifts, bitwise vs logical operators (bitwise works on integers logical works on booleans), examples with binary conversion"
+          },
+          {
+            label: "Operator Precedence",
+            topic: "Python Operator Precedence complete table from highest to lowest - () parentheses override all, ** exponentiation (right to left), +x -x ~x unary, * / // % multiplication group, + - addition group, << >> bit shifts, & bitwise AND, ^ bitwise XOR, | bitwise OR, == != > < >= <= is in comparisons, not logical NOT, and logical AND, or logical OR, := walrus (lowest), left to right associativity for most, right to left for ** and unary, tricky examples where precedence matters, using parentheses to clarify"
+          },
+        ]
+      },
+      "Control Flow": {
+        icon: "🔀", color: "#60a5fa",
+        desc: "if/elif/else, match-case, conditions",
+        children: [
+          {
+            label: "if / elif / else Statement",
+            topic: "Python if elif else - syntax: if condition: (colon required), indented body, elif for additional conditions, else for default case, single if without else, multiple elif blocks allowed, nested if (if inside if), condition evaluated as truthy/falsy, common mistakes: using = instead of ==, missing colon, wrong indentation, short-circuit in conditions, one-line if (ternary), pass as empty if body"
+          },
+          {
+            label: "Ternary Operator",
+            topic: "Python Ternary Conditional Operator - syntax: value_if_true if condition else value_if_false, one-line if-else for simple conditions, when to use (simple assignments simple returns), when NOT to use (complex logic), nested ternary (avoid - hurts readability), ternary in list comprehension, ternary in function argument, ternary vs and/or trick, examples of converting if-else to ternary"
+          },
+          {
+            label: "match-case Statement",
+            topic: "Python match-case (Python 3.10+) - syntax match subject: case pattern:, replaces long if-elif chains, default wildcard case _, matching literal values, matching multiple values in one case with |, guard conditions: case value if condition:, matching sequences case [x, y]:, matching with capture variables, match-case vs if-elif performance and readability, structural pattern matching concept"
+          },
+          {
+            label: "Logical Conditions & Combining",
+            topic: "Python Combining Conditions - and or not in if conditions, chained comparisons 1 <= x <= 10, in operator for membership check, is None check, isinstance() in conditions, not in, not is, all() returns True if all elements truthy, any() returns True if any element truthy, De Morgan laws: not(A and B) == not A or not B, complex multi-condition examples, operator precedence in conditions"
+          },
+        ]
+      },
+      "Loops": {
+        icon: "🔁", color: "#818cf8",
+        desc: "for, while, break, continue, pass",
+        children: [
+          {
+            label: "for Loop",
+            topic: "Python for loop - syntax: for variable in iterable: (colon required), iterating over list, tuple, string, range, set, dict (iterates keys by default), dict.values() dict.items(), range() three forms: range(stop), range(start,stop), range(start,stop,step), for loop with enumerate(iterable, start=0) gives index and value, for loop with zip() iterates multiple iterables in parallel, nested for loops, for loop counter variable scope"
+          },
+          {
+            label: "while Loop",
+            topic: "Python while loop - syntax: while condition: (runs as long as condition is True), infinite loop while True: (must have break inside), loop counter pattern with increment, while condition with complex expression, while-else: else block runs when condition becomes False (NOT when break exits), input validation pattern with while, sentinel value pattern, simulation of do-while with while True and break at end, comparing for vs while (for=known iterations, while=unknown iterations)"
+          },
+          {
+            label: "break, continue, pass",
+            topic: "Python break continue pass - break: exits INNERMOST loop immediately goes to code after loop, continue: skips REST of current iteration goes to NEXT iteration, pass: does nothing placeholder for empty code blocks (empty function empty class empty if), break with nested loops only exits the inner loop, for-else and while-else: else runs ONLY if loop completed WITHOUT break, using break to exit while True, examples showing exact flow of each"
+          },
+          {
+            label: "Nested Loops",
+            topic: "Python Nested Loops - outer loop and inner loop, inner loop runs COMPLETELY for each outer iteration, total iterations = outer_count * inner_count, break in nested loop only exits inner loop, continue in inner loop only affects inner loop, printing star patterns with nested loops, iterating 2D list (list of lists) with nested loops, nested loop with enumerate, performance O(n^2) warning, flattening nested list with nested loop"
+          },
+          {
+            label: "Loop Control & Patterns",
+            topic: "Python Loop Patterns and best practices - accumulator pattern (sum total with loop), counter pattern (count occurrences), flag variable pattern (found=False), search with break (set flag when found), building list inside loop with append, while True with break input validation, for-else search pattern (else means not found), avoiding modifying list while iterating (use copy or list comprehension instead), zip for parallel iteration, enumerate to avoid manual index counter"
+          },
+        ]
+      },
+      "Functions": {
+        icon: "⚙️", color: "#c084fc",
+        desc: "Functions, arguments, lambda, generators",
+        children: [
+          {
+            label: "Function — Syntax, Key Points & Types",
+            topic: "Python Function - syntax: def function_name(parameters): docstring body return, key points: reusability (write once use many times), DRY principle (Don't Repeat Yourself), abstraction (hide complexity), functions are first-class objects (can be passed assigned returned), types of functions: built-in (print len type range), user-defined (def keyword), lambda/anonymous, generator (yield), recursive, methods (inside class), docstring convention triple quotes first line of body"
+          },
+          {
+            label: "Pass by Reference vs Value",
+            topic: "Python Pass by Reference vs Value - Python uses PASS BY OBJECT REFERENCE (pass by assignment), immutable objects (int str tuple float bool): reassigning parameter inside function does NOT affect original variable (behaves like pass by value), mutable objects (list dict set): MODIFYING object inside function DOES affect original (behaves like pass by reference), IMPORTANT: reassigning (param = new_value) never affects original even for mutable, only MUTATING (param.append() param[0]=x) affects original, id() comparison examples proving this, memory diagram explanation"
+          },
+          {
+            label: "Function Arguments Overview",
+            topic: "Python Function Arguments - positional arguments: must be passed in correct order, keyword arguments: passed as name=value can be any order, default arguments: have preset value used if not passed, variable length *args: collects extra positional into tuple, **kwargs: collects extra keyword arguments into dict, correct parameter order rule: positional THEN default THEN *args THEN keyword-only THEN **kwargs, TypeError when wrong number or type of arguments, examples of each"
+          },
+          {
+            label: "Types of Arguments",
+            topic: "Python Types of Arguments detailed - keyword arguments (passed with name=value in function CALL, can be any order after positional), default arguments (defined with name=value in function DEF, must be at END of params before *args, mutable default argument trap), positional arguments (order matters matches by position), variable length positional *args (collects into tuple inside function, * in definition), variable length keyword **kwargs (collects into dict inside function, ** in definition), keyword-only arguments (params after * or *args must be passed by name), positional-only (before / Python 3.8+)"
+          },
+          {
+            label: "Function with Return Value",
+            topic: "Python Function Return Value - return statement exits function and sends value back to caller, return without value returns None, no return statement also returns None, multiple return values: return a, b, c (returns tuple), unpacking: x, y = func(), early return pattern (return inside if to exit early), difference between print and return (print shows on screen return sends value to caller), storing return value in variable, chaining calls func1(func2(x)), None check for functions that return None"
+          },
+          {
+            label: "The Anonymous Function — lambda",
+            topic: "Python Lambda Anonymous Function - syntax: lambda parameters: expression (single expression only), returns value automatically (no return keyword), can be assigned to variable: double = lambda x: x*2, used INLINE without naming, lambda with map(lambda x: x*2, list) applies to each element returns iterator, lambda with filter(lambda x: x>0, list) keeps matching elements, lambda with sorted(list, key=lambda x: x[1]) custom sort, lambda vs def: lambda for simple one-line operations, def for complex multi-line functions, limitations: no statements no multiple lines"
+          },
+          {
+            label: "Generator Function",
+            topic: "Python Generator Function - syntax uses yield keyword instead of return, yield pauses function saves state and returns value, next call resumes from where it paused, returns generator object (not list), lazy evaluation: values produced ONE AT A TIME (memory efficient), next() function manually gets next value, StopIteration exception when generator exhausted, for loop automatically handles StopIteration, yield vs return: yield pauses return ends function, generator expression: (x for x in range(10)) uses () not [], memory comparison: generator vs list for large data, real use cases: reading large files, infinite sequences, pipeline processing"
+          },
+          {
+            label: "Recursion",
+            topic: "Python Recursion - function calling itself, base case (stopping condition) vs recursive case, stack frames and call stack, RecursionError when maximum recursion depth exceeded (default 1000), sys.setrecursionlimit() to change limit, examples: factorial, fibonacci, sum of list, tower of hanoi, binary search, tree traversal, recursion vs iteration (pros cons performance), tail recursion (Python does NOT optimize), memoization with functools.lru_cache to optimize recursive calls, when to use recursion vs loops"
+          },
+          {
+            label: "Decorators",
+            topic: "Python Decorators - decorator is a function that takes another function and extends its behavior without modifying it, @decorator syntax sugar, writing a basic decorator with wrapper function, *args **kwargs in wrapper for flexibility, functools.wraps to preserve original function metadata, stacking multiple decorators order of execution, decorators with arguments (decorator factory pattern), class-based decorators with __call__, built-in decorators @staticmethod @classmethod @property, real-world uses: logging timing authentication caching input validation, decorating classes"
+          },
+          {
+            label: "Comprehensions",
+            topic: "Python Comprehensions - list comprehension [expr for x in iterable], list comprehension with condition [expr for x in iterable if condition], nested list comprehension, dict comprehension {k:v for k,v in iterable}, set comprehension {expr for x in iterable}, generator expression (expr for x in iterable) lazy evaluation, comprehension vs map/filter, nested comprehensions for 2D data, walrus operator := in comprehension (Python 3.8+), when to use comprehension vs for loop readability, performance comparison comprehension vs loop"
+          },
+        ]
+      },
+      "Exception Handling": {
+        icon: "🛡️", color: "#fb7185",
+        desc: "try, except, finally, custom errors",
+        children: [
+          {
+            label: "Exceptions — What & Why",
+            topic: "Python Exceptions introduction - what is an exception (runtime error that disrupts normal program flow), difference between SyntaxError detected BEFORE running and Exception occurring DURING running, why handle exceptions (prevent crashes, provide meaningful error messages, graceful degradation), exception hierarchy: BaseException at top, Exception inherits from it, specific exceptions inherit from Exception, common exceptions: ZeroDivisionError ValueError TypeError IndexError KeyError NameError AttributeError FileNotFoundError"
+          },
+          {
+            label: "try / except Block",
+            topic: "Python try except - syntax: try: risky_code except ExceptionType: handler, code AFTER exception line inside try is SKIPPED (jumps to except), multiple except blocks catch different exceptions (only ONE runs), except (TypeError, ValueError): catch multiple in one block, except Exception as e: get error message object, str(e) gives message, type(e).__name__ gives exception class name, bare except: catches everything including SystemExit (discouraged), exception propagates up call stack if not caught"
+          },
+          {
+            label: "else & finally",
+            topic: "Python try-except-else-finally complete - else block: runs ONLY when NO exception occurred in try block (success path), finally block: ALWAYS runs regardless of exception or not (cleanup path), finally runs even before return statement delivers value, correct order MUST be: try > except > else > finally, finally used for: closing files, releasing resources, database connection cleanup, combining all four blocks with examples, when to use else (code that should only run on success), when to use finally (guaranteed cleanup)"
+          },
+          {
+            label: "raise Statement",
+            topic: "Python raise - manually triggering exceptions: raise ExceptionType('message'), raise with custom message string, bare raise inside except block RE-RAISES same exception (useful for logging then re-raising), raise from for exception chaining: raise ValueError('msg') from original_error (stores original in __cause__), when to use raise: input validation, enforcing business rules, signaling error conditions in your functions, raising built-in exceptions, raising custom exceptions, raise inside function then catch in caller pattern"
+          },
+          {
+            label: "Custom Exceptions",
+            topic: "Python Custom Exceptions - creating custom exception class: class MyError(Exception): pass, inheriting from Exception (or specific subclass like ValueError), adding custom message: class MyError(Exception): def __init__(self, msg): super().__init__(msg), adding extra attributes to exception object, raising custom exception raise MyError('details'), catching custom exception except MyError as e, why create custom exceptions: meaningful domain-specific names (InsufficientFundsError AgeError InvalidInputError), custom exception hierarchy for large projects"
+          },
+          {
+            label: "Common Built-in Exceptions",
+            topic: "Python Common Built-in Exceptions with causes - ValueError: right type wrong value (int('abc')), TypeError: wrong type for operation ('hello'+5), KeyError: dict key not found, IndexError: list/tuple/string index out of range, AttributeError: object has no such attribute or method, NameError: variable used before assignment, ZeroDivisionError: division or modulo by zero, FileNotFoundError: open() on non-existent file, ImportError/ModuleNotFoundError: import fails, StopIteration: generator/iterator exhausted, RecursionError: maximum recursion depth exceeded, OverflowError, MemoryError"
+          },
+        ]
+      },
+      "File Handling": {
+        icon: "📁", color: "#4ade80",
+        desc: "Read, write, append, CSV, JSON",
+        children: [
+          {
+            label: "Opening & Closing Files",
+            topic: "Python File Handling - open(filename, mode) function, file modes: r (read default), w (write overwrites), a (append), r+ (read and write), b (binary mode rb wb), x (create new fails if exists), with statement context manager: with open(file) as f - auto-closes file even if exception occurs, without with must manually call .close(), FileNotFoundError when file not found, PermissionError, file object attributes and methods overview"
+          },
+          {
+            label: "Reading Files",
+            topic: "Python Reading Files - .read() reads ENTIRE file as single string, .read(n) reads n characters, .readline() reads ONE line including newline, .readlines() reads ALL lines returns list of strings with newlines, iterating file object line by line (memory efficient), file cursor position concept, .seek(0) resets to beginning, .tell() returns current position, stripping newlines with .strip() or .rstrip('\\n'), reading file into list of lines without newlines"
+          },
+          {
+            label: "Writing & Appending Files",
+            topic: "Python Writing and Appending Files - .write(string) writes string returns number of chars written, .writelines(list) writes list of strings (no automatic newlines), w mode OVERWRITES entire file (data loss warning), a mode APPENDS to end of existing file, newline must be manually added \\n, writing non-string data must convert: str(number), creating new file with open and w mode, difference between w and a with examples, writing multiple lines, flushing buffer with .flush()"
+          },
+          {
+            label: "CSV Files",
+            topic: "Python CSV File Handling - import csv module, csv.reader(file) reads CSV row by row as lists, csv.writer(file) writes CSV, csv.DictReader(file) reads as OrderedDict with headers as keys, csv.DictWriter(file, fieldnames) writes from dicts, delimiter parameter (default comma), quotechar parameter, with open for CSV files, reading CSV into list of dicts, writing list of dicts to CSV, handling headers (next(reader) to skip), fieldnames parameter for DictWriter, common CSV issues with commas in values"
+          },
+          {
+            label: "JSON Files",
+            topic: "Python JSON File Handling - import json module, json.load(file_object) reads JSON file into Python dict/list, json.dump(python_object, file_object) writes Python to JSON file, json.loads(json_string) parses JSON string to Python, json.dumps(python_object) converts Python to JSON string, indent=4 parameter for pretty printing, ensure_ascii=False for unicode, JSON to Python type mapping: object->dict array->list string->str number->int/float true/false->True/False null->None, JSONDecodeError on invalid JSON, handling nested JSON structures"
+          },
+        ]
+      },
+      "Modules": {
+        icon: "📦", color: "#facc15",
+        desc: "Import, built-in & custom modules",
+        children: [
+          {
+            label: "What is a Module & Import Styles",
+            topic: "Python Modules - what is a module (a .py file containing functions classes variables), why use modules (code organization, reusability, namespace separation), import module syntax (access with module.name), from module import name (direct access), from module import * (imports everything - discouraged pollutes namespace), import module as alias, from module import name as alias, __name__ == '__main__' pattern (code runs only when file executed directly not imported), PEP 8 import order: standard library then third-party then local"
+          },
+          {
+            label: "Built-in Standard Modules",
+            topic: "Python Built-in Standard Library - math: sqrt() ceil() floor() pi e pow() log() factorial(), random: random() randint(a,b) choice() shuffle() seed() sample(), os: getcwd() listdir() mkdir() makedirs() path.exists() path.join() path.basename() path.dirname() rename() remove(), sys: argv (command line args) path exit() version, datetime: datetime.now() date.today() timedelta() strftime(), json: loads() dumps() load() dump(), re: search() match() findall() sub() compile(), collections: Counter defaultdict OrderedDict deque namedtuple, time: time() sleep() perf_counter()"
+          },
+          {
+            label: "User-Defined Modules",
+            topic: "Python User-Defined Modules - creating your own module (save functions in mymodule.py), importing from same directory, module search path sys.path, package: folder with __init__.py file, from package.module import function, relative imports within package (from . import module), __all__ list controls what gets exported with *, module docstring at top, organizing large project into multiple modules and packages, circular import problem and solutions, running module directly vs importing"
+          },
+          {
+            label: "External Third-Party Modules",
+            topic: "Python External Modules and pip - pip package manager (comes with Python 3.4+), pip install package-name, pip install package==version for specific version, pip uninstall package-name, pip list shows installed packages, pip show package-name details, pip freeze outputs installed packages with versions, pip freeze > requirements.txt saves dependencies, pip install -r requirements.txt installs from file, PyPI Python Package Index (pypi.org), virtual environment isolates project dependencies, popular packages: requests (HTTP), numpy (arrays), pandas (data), flask django (web), ImportError ModuleNotFoundError when missing"
+          },
+        ]
+      },
+      "OOP": {
+        icon: "🏗️", color: "#818cf8",
+        desc: "Classes, four pillars, design patterns",
+        children: [
+          {
+            label: "OOP — Concept, Class & Object",
+            topic: "Python OOP Object Oriented Programming - what is OOP (programming paradigm based on objects), why OOP (models real world, reusability, maintainability, modularity), class definition syntax: class ClassName: (PascalCase convention), object instantiation: obj = ClassName(), class is a BLUEPRINT object is an INSTANCE, class attributes (shared by all), instance attributes (unique per object), methods (functions inside class), self parameter (refers to current instance), __init__ constructor (called automatically on creation), accessing attributes with dot notation obj.attribute"
+          },
+          {
+            label: "Encapsulation",
+            topic: "Python Encapsulation - bundling data (attributes) and methods together in a class, access modifiers: public name (accessible everywhere), protected _name (convention means internal use, still accessible), private __name (name mangling to _ClassName__name, harder to access outside), why encapsulation: data hiding, controlled access, validation on set, @property decorator creates getter, @name.setter creates setter with validation, @name.deleter, property vs direct attribute, real-world bank account example with balance validation"
+          },
+          {
+            label: "Inheritance",
+            topic: "Python Inheritance - child class inherits attributes and methods from parent class, syntax: class Child(Parent):, child gets ALL parent methods automatically, single inheritance one parent, multiple inheritance class C(A,B): MRO determines order, super() calls parent class method (super().__init__()), method overriding: child defines same method as parent (child version runs), isinstance(obj, Class) checks if object is instance, issubclass(Child, Parent) checks relationship, Method Resolution Order __mro__ for multiple inheritance, inheriting and extending __init__ with super()"
+          },
+          {
+            label: "Polymorphism",
+            topic: "Python Polymorphism - same interface different behavior, method overriding (child class changes parent method behavior), duck typing (if it has the method call it, no strict type check), operator overloading with dunder methods: __add__ for + __sub__ for - __mul__ for * __str__ for str() __len__ for len() __eq__ for == __lt__ for <, function polymorphism: len() works on str list tuple dict, abstract base class with abc module, @abstractmethod forces subclass to implement method, polymorphism examples with different animal classes making sounds"
+          },
+          {
+            label: "Abstraction",
+            topic: "Python Abstraction - hiding complex implementation details and showing only necessary interface to user, abstract class cannot be instantiated directly (only inherited), using abc module: from abc import ABC, abstractmethod, class MyAbstractClass(ABC):, @abstractmethod decorator on methods subclass MUST implement, @abstractproperty, concrete class (implements all abstract methods) CAN be instantiated, abstraction vs encapsulation (abstraction hides complexity, encapsulation hides data), real examples: database connection class, payment processor, abstract shapes"
+          },
+          {
+            label: "Dunder / Magic Methods",
+            topic: "Python Dunder Magic Methods - methods with double underscores __name__, __init__(self) constructor called on creation, __str__(self) returns human-readable string (used by print and str()), __repr__(self) developer string (used in REPL and repr()), __len__(self) called by len(), __add__(self, other) called by + operator, __sub__ __mul__ __truediv__ for arithmetic, __eq__(self, other) called by ==, __lt__ __gt__ __le__ __ge__ for comparisons, __contains__(self, item) called by in operator, __call__(self) makes object callable like function, __del__(self) destructor, __getitem__(self, key) for [] access"
+          },
+          {
+            label: "Class vs Instance vs Static Methods",
+            topic: "Python Three Types of Methods - instance method: first param is self (refers to instance), can access and modify instance AND class attributes, most common type, called on object: obj.method(), class method: @classmethod decorator first param is cls (refers to class), accesses class attributes not instance, used for factory methods, called on class OR object: MyClass.method(), static method: @staticmethod decorator NO self or cls parameter, utility function that belongs logically to class but doesnt need access, called on class or object, when to use each type with real examples"
+          },
+          {
+            label: "Four Pillars of OOP — Summary",
+            topic: "Python Four Pillars of OOP complete summary - Encapsulation: bundle data and methods, hide internal state, provide controlled access, _protected __private @property, Inheritance: code reuse through parent-child relationship, super() method overriding isinstance() issubclass(), Polymorphism: same method name different behavior, duck typing operator overloading abstract methods, Abstraction: hide complexity show interface, ABC abstractmethod, how all four pillars WORK TOGETHER in a real project design, advantages of OOP over procedural programming, SOLID principles introduction, real-world design example using all four pillars"
+          },
+        ]
+      },
+      "Django": {
+        icon: "🌐", color: "#44b78b",
+        desc: "Full-stack Python web framework",
+        children: [
+          {
+            label: "Django — What & Why",
+            topic: "Django Web Framework - what is Django, why use Django, batteries-included philosophy, MTV architecture Model Template View, Django vs Flask vs FastAPI comparison, Django features: ORM admin panel authentication URL routing templating, who uses Django (Instagram Pinterest Mozilla), Django version history, installing Django with pip install django"
+          },
+          {
+            label: "Django Project Setup",
+            topic: "Django Project Setup - django-admin startproject project_name creates project, manage.py utility script, project structure: settings.py urls.py wsgi.py asgi.py, python manage.py runserver starts development server at 127.0.0.1:8000, creating an app with python manage.py startapp app_name, registering app in INSTALLED_APPS in settings.py, difference between project and app"
+          },
+          {
+            label: "Django URL Routing",
+            topic: "Django URL Routing - urls.py file purpose, path() function syntax path(route view kwargs name), include() to include app-level URLs, URL patterns list urlpatterns, URL parameters with angle brackets <int:id> <str:slug>, re_path() for regex URLs, URL namespacing with app_name, reverse() function for URL resolution, URL naming for templates {% url 'name' %}"
+          },
+          {
+            label: "Django Views",
+            topic: "Django Views - function-based views FBV vs class-based views CBV, HttpRequest object attributes: method GET POST path body headers, HttpResponse object returning HTML, render() shortcut for template rendering, redirect() for URL redirection, JsonResponse for JSON APIs, status codes 200 301 404 500, request.GET and request.POST QueryDict, @require_http_methods decorator, generic views ListView DetailView CreateView UpdateView DeleteView"
+          },
+          {
+            label: "Django Templates",
+            topic: "Django Templates - Django Template Language DTL, template directory configuration TEMPLATES in settings.py, rendering template with render(request template_name context), template variables {{ variable }}, template tags {% tag %}, template filters {{ value|filter }}, template inheritance {% extends 'base.html' %} {% block content %}, {% include 'partial.html' %}, {% for item in list %} loop, {% if condition %} conditionals, {% url 'name' %} URL tag, {% csrf_token %} for forms, {% static 'path' %} for static files, built-in filters: date length default truncatewords upper lower"
+          },
+          {
+            label: "Django Models & ORM",
+            topic: "Django Models and ORM - defining model class inheriting from models.Model, field types: CharField IntegerField FloatField BooleanField DateTimeField TextField EmailField FileField ImageField ForeignKey ManyToManyField OneToOneField, field options: max_length null blank default choices unique, Meta class ordering verbose_name db_table, __str__ method, migrations: makemigrations creates migration files migrate applies to database, ORM queries: Model.objects.all() filter() exclude() get() create() update() delete() order_by() count() exists() first() last(), Q objects for complex queries, F objects for field references"
+          },
+          {
+            label: "Django Admin Panel",
+            topic: "Django Admin Panel - built-in admin interface at /admin/, creating superuser python manage.py createsuperuser, registering model in admin.py admin.site.register(Model), ModelAdmin class customization list_display list_filter search_fields ordering, admin actions, inline models TabularInline StackedInline, customizing admin site title header, fieldsets for form layout, readonly_fields, admin decorators @admin.register(Model)"
+          },
+          {
+            label: "Django Forms",
+            topic: "Django Forms - Form class vs ModelForm, defining Form with fields CharField IntegerField EmailField ChoiceField, form validation is_valid() cleaned_data, ModelForm automatically creates form from model class Meta model fields, rendering form in template {{ form.as_p }} {{ form.as_table }} {{ form.as_ul }}, manual field rendering {{ form.field }}, CSRF protection {% csrf_token %}, form errors {{ form.errors }}, custom validation clean_fieldname() clean(), widgets for HTML input types, initial data"
+          },
+          {
+            label: "Django Authentication",
+            topic: "Django Authentication System - django.contrib.auth built-in, User model username password email first_name last_name, login() logout() authenticate() functions, @login_required decorator, LoginView LogoutView class-based views, creating users User.objects.create_user(), password hashing automatic, user permissions and groups, request.user accessing current user, is_authenticated is_superuser is_staff checks, custom User model AbstractUser AbstractBaseUser, session-based authentication"
+          },
+          {
+            label: "Django REST Framework Basics",
+            topic: "Django REST Framework DRF - pip install djangorestframework, adding rest_framework to INSTALLED_APPS, Serializers: converting model instances to JSON and back, ModelSerializer auto-generates fields from model, APIView class-based API views, @api_view decorator for function-based, Response object, ViewSets and Routers for automatic URL generation, authentication: TokenAuthentication SessionAuthentication, permissions: IsAuthenticated IsAdminUser AllowAny, pagination, filtering, throttling"
+          },
+          {
+            label: "Django Middleware & Settings",
+            topic: "Django Middleware and Settings - what is middleware (hooks into request/response processing), MIDDLEWARE list order matters, built-in middleware: SecurityMiddleware SessionMiddleware CommonMiddleware CsrfViewMiddleware AuthenticationMiddleware, writing custom middleware __init__ __call__ process_view process_exception, settings.py important settings: DEBUG ALLOWED_HOSTS DATABASES STATIC_URL MEDIA_URL SECRET_KEY INSTALLED_APPS, static files configuration collectstatic command, media files handling, environment variables for secrets"
+          },
+        ]
+      },
+      "Flask": {
+        icon: "🧪", color: "#f0c040",
+        desc: "Lightweight Python micro web framework",
+        children: [
+          {
+            label: "Flask — What & Why",
+            topic: "Flask Web Framework - what is Flask, micro-framework meaning minimal core extensible with plugins, Flask vs Django comparison (Flask lightweight flexible, Django batteries-included), Werkzeug WSGI toolkit and Jinja2 templating engine, Flask philosophy: simple core add what you need, who uses Flask (Netflix LinkedIn Reddit), installing Flask pip install flask, Flask for APIs small projects prototyping"
+          },
+          {
+            label: "Flask App Setup & Hello World",
+            topic: "Flask App Setup - creating Flask app: from flask import Flask then app = Flask(__name__), __name__ parameter purpose, @app.route('/') decorator for URL routing, defining view function returns string or HTML, app.run(debug=True) starts development server on port 5000, debug mode auto-reload and debugger, Flask project structure: app.py templates/ static/ requirements.txt, flask run command with FLASK_APP environment variable"
+          },
+          {
+            label: "Flask Routing & URL Rules",
+            topic: "Flask Routing - @app.route('/path') decorator, URL variables <variable> <int:id> <float:price> <path:subpath>, methods parameter @app.route('/login', methods=['GET','POST']), url_for() function generates URL from endpoint name, dynamic URLs with converters: string int float path uuid, multiple routes for same function, 404 handling @app.errorhandler(404), redirect() and url_for() for redirection, trailing slash behavior"
+          },
+          {
+            label: "Flask Templates (Jinja2)",
+            topic: "Flask Jinja2 Templates - render_template('file.html', variables) function, templates/ directory, Jinja2 syntax: {{ variable }} for expressions, {% statement %} for logic, {# comment #}, template inheritance {% extends 'base.html' %} {% block name %}, {% include 'partial.html' %}, control structures {% for %} {% if %} {% elif %} {% else %}, template filters {{ name|upper }} {{ list|length }}, Jinja2 vs Django templates differences, autoescaping for XSS protection, Markup class for safe HTML"
+          },
+          {
+            label: "Flask Request & Response",
+            topic: "Flask Request and Response - from flask import request, request.method GET or POST, request.args for query parameters, request.form for POST form data, request.json for JSON body, request.files for file uploads, request.headers, request.cookies, making responses: return string return tuple (body status headers), make_response() for custom response, jsonify() for JSON response, Response object, setting cookies response.set_cookie(), response headers"
+          },
+          {
+            label: "Flask Forms & Validation",
+            topic: "Flask Forms handling - HTML form with method POST action, CSRF protection with Flask-WTF extension, WTForms integration: pip install flask-wtf, creating form class with StringField PasswordField SubmitField validators, form.validate_on_submit(), rendering form fields in template, flash() for flash messages get_flashed_messages(), request.form for manual form handling without WTForms, file upload with request.files and secure_filename()"
+          },
+          {
+            label: "Flask Database (SQLAlchemy)",
+            topic: "Flask SQLAlchemy - pip install flask-sqlalchemy, configuring SQLALCHEMY_DATABASE_URI in app.config, db = SQLAlchemy(app), defining model class(db.Model), column types: db.Column db.Integer db.String db.Float db.Boolean db.DateTime db.Text db.ForeignKey, db.create_all() creates tables, CRUD: db.session.add() db.session.commit() db.session.delete() Model.query.all() Model.query.filter_by() Model.query.get(), relationships db.relationship() backref, Flask-Migrate for database migrations"
+          },
+          {
+            label: "Flask Blueprints",
+            topic: "Flask Blueprints - organizing large Flask apps into modules, creating Blueprint: bp = Blueprint('name', __name__), registering with app.register_blueprint(bp), blueprint routes @bp.route(), blueprint templates and static files, url_prefix parameter for namespacing URLs, blueprint vs app factory pattern, create_app() factory function, circular imports solution with blueprints, when to use blueprints"
+          },
+          {
+            label: "Flask REST API",
+            topic: "Flask REST API development - RESTful principles: GET POST PUT DELETE PATCH, jsonify() for JSON responses, request.json for JSON input, status codes: 200 OK 201 Created 400 Bad Request 404 Not Found 500 Server Error, Flask-RESTful extension, Resource class, Api object, CORS handling with flask-cors, API authentication with tokens, error handling @app.errorhandler, API versioning /api/v1/, request validation and serialization"
+          },
+          {
+            label: "Flask Middleware & Extensions",
+            topic: "Flask Middleware and Extensions - @app.before_request runs before every request, @app.after_request runs after every request, @app.teardown_request cleanup, popular extensions: Flask-Login (authentication), Flask-Mail (email), Flask-Caching (caching), Flask-CORS (cross-origin), Flask-Limiter (rate limiting), Flask-SocketIO (websockets), Flask-JWT-Extended (JWT auth), app.config for configuration, environment-based config classes DevelopmentConfig ProductionConfig"
+          },
+        ]
+      },
+      "FastAPI": {
+        icon: "⚡", color: "#009688",
+        desc: "Modern, fast Python API framework",
+        children: [
+          {
+            label: "FastAPI — What & Why",
+            topic: "FastAPI Framework - what is FastAPI, modern high-performance web framework for building APIs, built on Starlette (ASGI) and Pydantic (data validation), key features: automatic API docs Swagger/OpenAPI, type hints for validation, async support, very fast performance comparable to NodeJS and Go, FastAPI vs Flask vs Django comparison, who uses FastAPI (Microsoft Uber Netflix), installing: pip install fastapi uvicorn"
+          },
+          {
+            label: "FastAPI App Setup & First API",
+            topic: "FastAPI App Setup - creating app: from fastapi import FastAPI then app = FastAPI(), @app.get('/') decorator for GET endpoint, async def or def for route functions, running with uvicorn main:app --reload, automatic interactive docs at /docs (Swagger UI) and /redoc, response_model parameter, status_code parameter, tags for grouping endpoints, app title description version metadata"
+          },
+          {
+            label: "FastAPI Path & Query Parameters",
+            topic: "FastAPI Path and Query Parameters - path parameters @app.get('/items/{item_id}') with type hints item_id: int, automatic validation and conversion, Query parameters: function params without path declaration, from fastapi import Query for validation Query(min_length max_length regex), optional parameters with Optional[str] = None or str | None, default values, Path() for path parameter validation Path(ge=1 le=100 title description), multiple path and query params combination, enum path parameters with Enum class"
+          },
+          {
+            label: "FastAPI Request Body & Pydantic",
+            topic: "FastAPI Request Body with Pydantic - Pydantic BaseModel for request body validation, defining model class Item(BaseModel): name: str price: float, automatic JSON parsing and validation, Field() for extra validation Field(min_length max_length gt lt ge le), nested models, Optional fields with default None, List fields List[str], response_model for output validation, model methods: dict() json() copy(), Config class for schema examples, validator decorator for custom validation, ValidationError automatic 422 response"
+          },
+          {
+            label: "FastAPI Response Models",
+            topic: "FastAPI Response Models - response_model parameter in decorator controls output shape, response_model_exclude for hiding fields like password, response_model_include for showing specific fields, JSONResponse for custom JSON, HTMLResponse for HTML, PlainTextResponse, RedirectResponse, StreamingResponse for files, FileResponse, status codes from fastapi import status status.HTTP_201_CREATED, custom response headers, response cookies"
+          },
+          {
+            label: "FastAPI Dependency Injection",
+            topic: "FastAPI Dependency Injection - Depends() function for injecting dependencies, creating dependency functions, using dependencies in path operations: def read_items(commons: dict = Depends(common_parameters)), sub-dependencies (dependencies that have dependencies), class-based dependencies, yield dependencies for database sessions and cleanup, global dependencies with app = FastAPI(dependencies=[Depends(verify_token)]), dependency override for testing"
+          },
+          {
+            label: "FastAPI Authentication & Security",
+            topic: "FastAPI Authentication - OAuth2 with Password flow, OAuth2PasswordBearer tokenUrl parameter, OAuth2PasswordRequestForm for login, JWT tokens: python-jose library, creating access tokens with expiration, password hashing with passlib bcrypt, protecting endpoints with Depends(get_current_user), HTTPBearer for bearer token, APIKey authentication, Security scopes, CORS middleware CORSMiddleware allow_origins allow_methods"
+          },
+          {
+            label: "FastAPI Database Integration",
+            topic: "FastAPI Database - SQLAlchemy integration with FastAPI, creating database engine and session, SessionLocal dependency with yield for auto-close, defining SQLAlchemy models (Base class), Pydantic schemas vs SQLAlchemy models separation, CRUD operations with session.query() session.add() session.commit(), async database with databases library or SQLAlchemy 2.0 async, Alembic for migrations, Tortoise ORM alternative, MongoDB with Motor"
+          },
+          {
+            label: "FastAPI Async & Background Tasks",
+            topic: "FastAPI Async Support - async def vs def in FastAPI (both work), await for async operations, asyncio for concurrent tasks, BackgroundTasks for running tasks after response: background_tasks.add_task(function args), use cases: sending email processing data logging, async database queries, async HTTP requests with httpx, WebSocket support @app.websocket('/ws'), lifespan events @app.on_event('startup') @app.on_event('shutdown'), performance benefits of async"
+          },
+          {
+            label: "FastAPI Middleware & Error Handling",
+            topic: "FastAPI Middleware and Error Handling - @app.middleware('http') custom middleware, CORSMiddleware for cross-origin requests, TrustedHostMiddleware, GZipMiddleware, HTTPException for error responses: raise HTTPException(status_code=404 detail='Not found'), custom exception handlers @app.exception_handler(CustomException), RequestValidationError handling, global error handling, logging middleware, request timing middleware, rate limiting"
+          },
+        ]
+      },
+    };
+
+
+    const PART_CFG = [
+      { id: 1, label: "PART 1 — BASIC", range: [1, 15], cls: "l1", tabCls: "p1" },
+      { id: 2, label: "PART 2 — INTERMEDIATE", range: [16, 35], cls: "l2", tabCls: "p2" },
+      { id: 3, label: "PART 3 — ADVANCED", range: [36, 50], cls: "l3", tabCls: "p3" },
+    ];
+
+    const SYS = `You are PyMaster Tutor v3.0 — Expert Python Examiner. ONLY generate MCQs. NO intro text. NO explanations before Q1.
+
+FORMAT (use EXACTLY for every question):
+Q[N]. [Question]
+[triple-backtick code block only if needed]
+A) option
+B) option
+C) option
+D) option
+Answer: [letter]
+Why: [1-2 line explanation]
+
+Rules: meaningful variable names, all 4 options plausible, include ERROR outputs in output-based Qs.`;
+
+    // STATE
+    let topic = "", activePart = 1;
+    let partMCQs = { 1: null, 2: null, 3: null };
+    let partLoading = { 1: false, 2: false, 3: false };
+    let partErr = { 1: null, 2: null, 3: null };
+    let answers = {}; // qNum -> {chosen, correct, answered}
+    let currentQ = { 1: 1, 2: 16, 3: 36 };
+    let progTimer = {};
+
+    // BUILD LANDING — chips open sub-menu if DRILL key exists
+    document.getElementById("topicsGrid").innerHTML = QUICK_TOPICS.map(t => {
+      const hasDrill = DRILL.hasOwnProperty(t);
+      const onclick = hasDrill ? `openDrillSub('${t}')` : `startExam('${t}')`;
+      const badge = hasDrill ? `<span style="font-size:8px;opacity:.5;margin-left:4px">▸</span>` : "";
+      return `<div class="topic-chip" onclick="${onclick}">${t}${badge}</div>`;
+    }).join("");
+    const inp = document.getElementById("searchInp");
+    const sugBox = document.getElementById("searchSuggestions");
+
+    // Collect ALL searchable topics (drill keys + their sub-topics)
+    const ALL_SEARCH_ITEMS = [];
+    Object.entries(DRILL).forEach(([key, val]) => {
+      ALL_SEARCH_ITEMS.push({ name: key, icon: val.icon, desc: val.desc, type: 'drill', color: val.color });
+      val.children.forEach(c => {
+        ALL_SEARCH_ITEMS.push({ name: c.label, icon: val.icon, desc: key, type: 'sub', topic: c.topic, color: val.color });
+      });
+    });
+
+    function showSuggestions(query) {
+      if (!query) { sugBox.classList.remove('active'); return; }
+      const q = query.toLowerCase();
+      const matches = ALL_SEARCH_ITEMS.filter(item => item.name.toLowerCase().includes(q)).slice(0, 10);
+      if (matches.length === 0) { sugBox.classList.remove('active'); return; }
+      sugBox.innerHTML = matches.map((m, i) => {
+        const nameHtml = highlightMatch(m.name, q);
+        const badge = m.type === 'drill' ? '▸ Sub-topics' : '→ 50 MCQs';
+        return `<div class="sug-item" data-idx="${i}">
+      <span class="sug-icon">${m.icon}</span>
+      <span class="sug-name">${nameHtml}</span>
+      <span class="sug-desc">${m.type === 'sub' ? m.desc : ''} ${badge}</span>
+    </div>`;
+      }).join('');
+      // Attach click handlers
+      sugBox.querySelectorAll('.sug-item').forEach((el, i) => {
+        el.onclick = () => {
+          const m = matches[i];
+          sugBox.classList.remove('active');
+          inp.value = '';
+          document.getElementById('btnStart').disabled = true;
+          if (m.type === 'drill') openDrillSub(m.name);
+          else startExam(m.topic);
+        };
+      });
+      sugBox.classList.add('active');
+    }
+
+    function highlightMatch(text, query) {
+      const idx = text.toLowerCase().indexOf(query);
+      if (idx === -1) return escHtml(text);
+      return escHtml(text.slice(0, idx)) + '<span class="sug-match">' + escHtml(text.slice(idx, idx + query.length)) + '</span>' + escHtml(text.slice(idx + query.length));
+    }
+
+    inp.addEventListener("input", () => {
+      document.getElementById("btnStart").disabled = !inp.value.trim();
+      showSuggestions(inp.value.trim());
+    });
+    inp.addEventListener("keydown", e => {
+      if (e.key === "Enter" && inp.value.trim()) { sugBox.classList.remove('active'); startExam(inp.value.trim()); }
+      if (e.key === "Escape") sugBox.classList.remove('active');
+    });
+    inp.addEventListener("focus", () => { if (inp.value.trim()) showSuggestions(inp.value.trim()); });
+    document.addEventListener("click", e => { if (!e.target.closest('.search-wrap')) sugBox.classList.remove('active'); });
+    document.getElementById("btnStart").onclick = () => { sugBox.classList.remove('active'); if (inp.value.trim()) startExam(inp.value.trim()); };
+    document.getElementById("btnBack").onclick = goLanding;
+
+    // BUILD DRILL CARDS — PYRAMID LAYOUT (6,5,4,3,2,1)
+    function buildDrillHome() {
+      const container = document.getElementById("drillHome");
+      container.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:8px;max-width:850px;width:100%;";
+      const entries = Object.entries(DRILL);
+      const rowSizes = [6, 5, 4, 3, 2, 1];
+      let idx = 0;
+      let html = '';
+      for (const size of rowSizes) {
+        if (idx >= entries.length) break;
+        html += '<div class="pyramid-row">';
+        for (let i = 0; i < size && idx < entries.length; i++, idx++) {
+          const [key, val] = entries[idx];
+          html += `
+        <div class="drill-chip" onclick="openDrillSub('${key}')"
+          style="border-color:${val.color}33;background:${val.color}0d;color:${val.color}">
+          <span class="drill-chip-icon">${val.icon}</span>
+          <span class="drill-chip-label">${key}</span>
+          <span class="drill-chip-arr">▸</span>
+        </div>`;
+        }
+        html += '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function openDrillSub(key) {
+      const val = DRILL[key];
+      if (!val) { startExam(key); return; }
+      drillSubTopics = []; // reset topic array
+      document.getElementById("drillHome").style.display = "none";
+      document.getElementById("topicsGrid").style.display = "none";
+      document.getElementById("searchBar").style.display = "none";
+      const sub = document.getElementById("drillSub");
+      sub.style.display = "block";
+      sub.innerHTML = `
+    <div class="submenu-header">
+      <button class="submenu-back" onclick="closeDrillSub()">← Back</button>
+      <div class="submenu-title" style="color:${val.color}">${val.icon} ${key} — Choose a Sub-Topic</div>
+    </div>
+    <div class="submenu-grid">
+      ${val.children.map((c, i) => {
+        const idx = drillSubTopics.length;
+        drillSubTopics.push(c.topic);
+        return `
+        <div class="sub-chip" onclick="startExamFromDrill(${idx})"
+          style="border-color:${val.color}22">
+          <div style="display:flex;align-items:center;gap:12px;flex:1">
+            <span style="font-family:var(--mono);font-size:11px;color:${val.color};opacity:.6;min-width:20px">${String(i + 1).padStart(2, '0')}</span>
+            <span class="sub-chip-text">${c.label}</span>
+          </div>
+          <span class="sub-chip-arrow" style="color:${val.color}">→ 50 MCQs</span>
+        </div>`;
+      }).join("")}
+    </div>`;
+    }
+
+    function closeDrillSub() {
+      document.getElementById("drillSub").style.display = "none";
+      document.getElementById("drillHome").style.display = "flex";
+      document.getElementById("topicsGrid").style.display = "grid";
+      document.getElementById("searchBar").style.display = "flex";
+    }
+
+    // Safe topic lookup array to avoid JSON quote issues in onclick
+    let drillSubTopics = [];
+
+    function startExamFromDrill(idx) {
+      const t = drillSubTopics[idx];
+      if (t) startExam(t);
+    }
+
+    buildDrillHome();
+
+    function startExam(t) {
+      topic = t.trim();
+      partMCQs = { 1: null, 2: null, 3: null };
+      partLoading = { 1: false, 2: false, 3: false };
+      partErr = { 1: null, 2: null, 3: null };
+      answers = {}; currentQ = { 1: 1, 2: 16, 3: 36 };
+      document.getElementById("quizTopicLabel").textContent = "📋 " + topic;
+      document.getElementById("landing").style.display = "none";
+      document.getElementById("quiz").classList.add("active");
+      document.getElementById("btnBack").classList.remove("d-none");
+      document.getElementById("scoreLive").classList.remove("d-none");
+      // Activate quiz-active state for floating badges
+      document.body.classList.add('quiz-active');
+      const fpi = document.getElementById('floatingPartIndicator');
+      if (fpi) fpi.classList.add('visible');
+      const rc = document.getElementById('rightControls');
+      if (rc) rc.style.display = 'flex';
+      updateScore();
+      updateScoreBox();
+      updateDots();
+      switchPart(1);
+    }
+
+    function goLanding() {
+      document.getElementById("landing").style.display = "flex";
+      document.getElementById("quiz").classList.remove("active");
+      document.getElementById("btnBack").classList.add("d-none");
+      document.getElementById("scoreLive").classList.add("d-none");
+      // Deactivate quiz-active state
+      document.body.classList.remove('quiz-active');
+      const fpi = document.getElementById('floatingPartIndicator');
+      if (fpi) fpi.classList.remove('visible');
+      const rc = document.getElementById('rightControls');
+      if (rc) rc.style.display = 'none';
+      inp.value = ""; document.getElementById("btnStart").disabled = true;
+      topic = "";
+      // Reset drill state
+      document.getElementById("drillSub").style.display = "none";
+      document.getElementById("drillHome").style.display = "flex";
+      document.getElementById("topicsGrid").style.display = "grid";
+      document.getElementById("searchBar").style.display = "flex";
+    }
+
+    // PART SWITCHING
+    function switchPart(n) {
+      activePart = n;
+      [1, 2, 3].forEach(i => {
+        document.getElementById("tab" + i).classList.toggle("active", i === n);
+        document.getElementById("hdrPart" + i).classList.toggle("active", i === n);
+      });
+      // Update floating part indicator badges
+      document.querySelectorAll('.fpi-badge').forEach((b, i) => b.classList.toggle('active', (i + 1) === n));
+      if (partMCQs[n]) renderQuestion(n, currentQ[n]);
+      else if (partLoading[n]) showLoading(n);
+      else loadPart(n);
+    }
+
+    // PROMPTS
+    function getPrompt(part) {
+      const isData = ["string", "list", "tuple", "set", "frozenset", "dictionary", "dict", "boolean", "bool"].some(d => topic.toLowerCase().includes(d));
+      const dataExtra = isData ? "\nFor data types cover: Creating, Indexing, Slicing, Sorting, ALL Methods, Edge cases, Type conversion, Common errors." : "";
+
+      if (part === 1) return `${SYS}${dataExtra}\nTopic: "${topic}"\nGenerate EXACTLY 15 MCQs — Q1 to Q15 (BASIC).\nQ1-Q3: SYNTAX BASED\nQ4-Q6: DEFINITION BASED\nQ7-Q9: OUTPUT BASED (simple, include 1 with error output)\nQ10-Q12: CREATING & ACCESSING\nQ13-Q15: ERROR FINDING\nStart at Q1. End at Q15. Nothing else before or after.`;
+
+      if (part === 2) return `${SYS}${dataExtra}\nTopic: "${topic}"\nGenerate EXACTLY 20 MCQs — Q16 to Q35 (INTERMEDIATE).\nQ16-Q19: SYNTAX BASED (advanced)\nQ20-Q23: OUTPUT BASED (tricky, include 2 with error output)\nQ24-Q27: METHOD MASTERY\nQ28-Q31: ERROR FINDING (intermediate)\nQ32-Q35: CONCEPT & BEHAVIOR\nStart at Q16. End at Q35. Nothing else before or after.`;
+
+      if (part === 3) return `${SYS}${dataExtra}\nTopic: "${topic}"\nGenerate EXACTLY 15 MCQs — Q36 to Q50 (ADVANCED).\nQ36-Q38: SYNTAX (expert, nested/complex)\nQ39-Q41: OUTPUT (trap/error — at least 2 must be error outputs)\nQ42-Q44: PROFESSIONAL BEST PRACTICES\nQ45-Q47: COMPLEX LOGIC (multi-step tracing)\nQ48-Q50: EXAM DESTROYER (mutable defaults, late binding, integer caching, identity traps)\nStart at Q36. End at Q50. Nothing else before or after.`;
+    }
+
+    // LOAD — Direct Groq API (no server needed)
+    // API key priority: sessionStorage > CONFIG > prompt user
+    function getGroqApiKey() {
+      let key = sessionStorage.getItem('groq_api_key');
+      if (key) return key;
+      if (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_KEY) {
+        sessionStorage.setItem('groq_api_key', CONFIG.GROQ_API_KEY);
+        return CONFIG.GROQ_API_KEY;
+      }
+      return null;
+    }
+    function promptForApiKey() {
+      return new Promise((resolve) => {
+        const existing = getGroqApiKey();
+        if (existing) { resolve(existing); return; }
+        const modal = document.getElementById('apiKeyModal');
+        if (modal) { modal.classList.add('open'); }
+        window._resolveApiKey = resolve;
+      });
+    }
+    window.submitApiKey = function() {
+      const input = document.getElementById('apiKeyInput');
+      const msg = document.getElementById('apiKeyMsg');
+      const key = input ? input.value.trim() : '';
+      if (!key || key.length < 10) {
+        if (msg) { msg.className = 'modal-msg err'; msg.textContent = 'Please enter a valid Groq API key.'; }
+        return;
+      }
+      sessionStorage.setItem('groq_api_key', key);
+      if (msg) { msg.className = 'modal-msg ok'; msg.textContent = '✅ API key saved for this session!'; }
+      const modal = document.getElementById('apiKeyModal');
+      setTimeout(() => { if (modal) modal.classList.remove('open'); }, 600);
+      if (window._resolveApiKey) { window._resolveApiKey(key); window._resolveApiKey = null; }
+    };
+    window.closeApiKeyModal = function() {
+      const modal = document.getElementById('apiKeyModal');
+      if (modal) modal.classList.remove('open');
+    };
+    const GROQ_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.GROQ_MODEL) ? CONFIG.GROQ_MODEL : "llama-3.3-70b-versatile";
+    const GROQ_URL = (typeof CONFIG !== 'undefined' && CONFIG.GROQ_URL) ? CONFIG.GROQ_URL : "https://api.groq.com/openai/v1/chat/completions";
+
+
+    async function loadPart(n) {
+      if (!topic || partLoading[n]) return;
+      const apiKey = getGroqApiKey();
+      if (!apiKey) {
+        const prompted = await promptForApiKey();
+        if (!prompted) { alert('API key is required to generate quizzes.'); return; }
+      }
+      const finalKey = getGroqApiKey();
+      partLoading[n] = true; updateDots(); showLoading(n);
+      startFakeProgress(n);
+      try {
+        const res = await fetch(GROQ_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + finalKey
+          },
+          body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [{ role: "user", content: getPrompt(n) }],
+            max_tokens: 4000,
+            temperature: 0.7
+          })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || "API error: " + res.status);
+        }
+        const data = await res.json();
+        const raw = data.choices?.[0]?.message?.content || "";
+        const parsed = parseMCQs(raw);
+        if (parsed.length === 0) throw new Error("No MCQs parsed. Try again.");
+        partMCQs[n] = parsed;
+        partErr[n] = null;
+      } catch (e) {
+        partErr[n] = e.message || "Error — Retry karo.";
+        partMCQs[n] = null;
+      } finally {
+        clearFakeProgress(n);
+        partLoading[n] = false;
+        updateDots();
+        if (activePart === n) {
+          if (partMCQs[n]) renderQuestion(n, currentQ[n]);
+          else showError(n);
+        }
+      }
+    }
+
+    function startFakeProgress(n) {
+      let w = 0;
+      progTimer[n] = setInterval(() => {
+        w = Math.min(w + Math.random() * 7, 88);
+        const el = document.getElementById("prog" + n);
+        if (el) el.style.width = w + "%";
+      }, 350);
+    }
+    function clearFakeProgress(n) {
+      clearInterval(progTimer[n]);
+      const el = document.getElementById("prog" + n);
+      if (el) el.style.width = "100%";
+    }
+
+    // PARSE
+    function parseMCQs(raw) {
+      const qs = [];
+      const blocks = raw.split(/(?=Q\d+\.\s)/);
+      for (const blk of blocks) {
+        const trimmed = blk.trim();
+        if (!trimmed.match(/^Q\d+\./)) continue;
+        const numM = trimmed.match(/^Q(\d+)\./);
+        const num = numM ? parseInt(numM[1]) : 0;
+        let rest = trimmed.replace(/^Q\d+\.\s*/, "");
+        let code = "";
+        const codeM = rest.match(/```[\s\S]*?```/);
+        if (codeM) { code = codeM[0].replace(/```(?:python)?\n?/g, "").replace(/```/g, "").trim(); rest = rest.replace(/```[\s\S]*?```/, ""); }
+        const optLines = rest.match(/^[A-D]\).*/gm) || [];
+        const opts = {};
+        optLines.forEach(l => { opts[l[0]] = l.slice(3).trim(); });
+        const qText = rest.split(/\n[A-D]\)/)[0].trim();
+        const ansM = rest.match(/Answer:\s*([A-D])/i);
+        const answer = ansM ? ansM[1].toUpperCase() : "";
+        const whyM = rest.match(/Why:\s*([\s\S]+?)(?=\n(?:Q\d+\.)|$)/i);
+        const why = whyM ? whyM[1].trim() : "";
+        if (num > 0 && Object.keys(opts).length >= 2 && answer)
+          qs.push({ num, qText, code, opts, answer, why });
+      }
+      return qs;
+    }
+
+    // RENDER SINGLE QUESTION
+    function renderQuestion(n, qNum) {
+      const mcqs = partMCQs[n];
+      if (!mcqs) return;
+      const q = mcqs.find(q => q.num === qNum);
+      if (!q) {
+        // Show results for this part or all
+        if (qNum > PART_CFG[n - 1].range[1]) showPartComplete(n);
+        return;
+      }
+
+      currentQ[n] = qNum;
+      const cfg = PART_CFG[n - 1];
+      const [start, end] = cfg.range;
+      const partTotal = end - start + 1;
+      const answered = answers[qNum];
+
+      // Progress
+      const doneInPart = Object.keys(answers).filter(k => k >= start && k <= end).length;
+      const pct = Math.round((doneInPart / partTotal) * 100);
+      document.getElementById("quizProgFill").style.width = pct + "%";
+
+      // Dots row
+      let dotsHtml = "";
+      for (let i = start; i <= end; i++) {
+        const a = answers[i];
+        let cls = "q-dot";
+        if (i === qNum) cls += " current";
+        else if (a) { cls += (a.correct ? " answered-correct" : " answered-wrong"); }
+        dotsHtml += `<div class="${cls}" title="Q${i}" onclick="jumpToQ(${n},${i})"></div>`;
+      }
+
+      // Options
+      let optsHtml = "";
+      ["A", "B", "C", "D"].forEach(l => {
+        if (!q.opts[l]) return;
+        let cls = "opt-btn";
+        let icon = "";
+        if (answered) {
+          if (l === q.answer) { cls += (answered.chosen === l ? " correct" : " reveal"); icon = l === q.answer ? "✓" : ""; }
+          else if (l === answered.chosen && answered.chosen !== q.answer) { cls += " wrong"; icon = "✗"; }
+        }
+        const disabled = answered ? "disabled" : "";
+        optsHtml += `<button class="${cls}" ${disabled} onclick="chooseAnswer(${n},${qNum},'${l}')">
+      <span class="opt-letter">${l}</span>
+      <span class="opt-text">${escHtml(q.opts[l])}</span>
+      <span class="opt-icon">${icon}</span>
+    </button>`;
+      });
+
+      // Explanation (shown after answering)
+      let explainHtml = "";
+      if (answered) {
+        const expCls = answered.correct ? "correct-exp" : "wrong-exp";
+        const prefix = answered.correct ? "✅ Correct! " : "❌ Wrong — Correct answer: " + q.answer + ". ";
+        explainHtml = `<div class="explain-box ${expCls}">${prefix}${escHtml(q.why)}</div>`;
+      }
+
+      // Nav
+      const isFirst = qNum === start;
+      const isLast = qNum === end;
+      const allPartDone = Object.keys(answers).filter(k => parseInt(k) >= start && parseInt(k) <= end).length === partTotal;
+
+      let navHtml = `<div class="nav-row">
+    <button class="btn-nav btn-prev" onclick="prevQ(${n},${qNum})" ${isFirst ? "disabled" : ""}>← Prev</button>
+    <button class="btn-nav btn-skip" onclick="skipQ(${n},${qNum})">Skip</button>`;
+
+      if (allPartDone && n < 3) navHtml += `<button class="btn-nav btn-next" onclick="switchPart(${n + 1})">Next Part →</button>`;
+      else if (allPartDone && n === 3) navHtml += `<button class="btn-nav btn-next" onclick="showFinalResults()">See Results 🏆</button>`;
+      else navHtml += `<button class="btn-nav btn-next" onclick="nextQ(${n},${qNum})" ${(!answered && !isLast) ? "" : ""}>${isLast ? "Finish Part" : "Next →"}</button>`;
+
+      navHtml += `</div>`;
+
+      const partLabel = n === 1 ? "BASIC — Q1 to Q15" : n === 2 ? "INTERMEDIATE — Q16 to Q35" : "ADVANCED — Q36 to Q50";
+
+      document.getElementById("quizInner").innerHTML = `
+    <div class="q-counter-row">
+      <div class="q-counter">Question <strong>Q${qNum}</strong> of Q${start}–Q${end}</div>
+      <div class="q-dots-row">${dotsHtml}</div>
+    </div>
+    <div class="mcq-card">
+      <div class="mcq-part-label ${cfg.cls}">${partLabel}</div>
+      <div class="mcq-qnum">Q${qNum}</div>
+      <div class="mcq-question">${escHtml(q.qText)}</div>
+      ${q.code ? `<div class="mcq-code">${escHtml(q.code)}</div>` : ""}
+      <div class="options-grid">${optsHtml}</div>
+      ${explainHtml}
+    </div>
+    ${navHtml}`;
+    }
+
+    function chooseAnswer(n, qNum, chosen) {
+      if (answers[qNum]) return;
+      const q = partMCQs[n].find(q => q.num === qNum);
+      if (!q) return;
+      const correct = chosen === q.answer;
+      answers[qNum] = { chosen, correct };
+      updateScore();
+      renderQuestion(n, qNum);
+      // Auto-advance after short delay if correct
+      if (correct) {
+        const [, end] = PART_CFG[n - 1].range;
+        if (qNum < end) setTimeout(() => nextQ(n, qNum), 900);
+      }
+    }
+
+    function nextQ(n, qNum) {
+      const [, end] = PART_CFG[n - 1].range;
+      const next = findNextUnanswered(n, qNum + 1, end) || (qNum < end ? qNum + 1 : qNum);
+      renderQuestion(n, next);
+      document.getElementById("quizInner").scrollTop = 0;
+      document.querySelector(".quiz-body").scrollTop = 0;
+    }
+
+    function prevQ(n, qNum) {
+      const [start] = PART_CFG[n - 1].range;
+      if (qNum > start) renderQuestion(n, qNum - 1);
+    }
+
+    function skipQ(n, qNum) {
+      const [, end] = PART_CFG[n - 1].range;
+      if (qNum < end) renderQuestion(n, qNum + 1);
+    }
+
+    function jumpToQ(n, qNum) { renderQuestion(n, qNum); }
+
+    function findNextUnanswered(n, from, end) {
+      for (let i = from; i <= end; i++) if (!answers[i]) return i;
+      return null;
+    }
+
+    // SCORE
+    function updateScore() {
+      const correct = Object.values(answers).filter(a => a.correct).length;
+      const total = Object.keys(answers).length;
+      document.getElementById("scoreNum").textContent = correct;
+      document.getElementById("scoreTot").textContent = total || "0";
+      updateScoreBox();
+    }
+
+    function updateScoreBox() {
+      const correct = Object.values(answers).filter(a => a.correct).length;
+      const total = Object.keys(answers).length;
+      const scoreBox = document.getElementById('scoreBox');
+      if (scoreBox) scoreBox.textContent = 'Score: ' + correct + ' / ' + total;
+    }
+
+    // FINAL RESULTS
+    function showFinalResults() {
+      const total = 50;
+      const answered = Object.keys(answers).length;
+      const correct = Object.values(answers).filter(a => a.correct).length;
+      const wrong = Object.values(answers).filter(a => !a.correct).length;
+      const skipped = total - answered;
+      const pct = Math.round((correct / total) * 100);
+
+      let grade = "", gradeColor = "";
+      if (pct >= 90) { grade = "A+ 🏆"; gradeColor = "var(--gold)"; }
+      else if (pct >= 80) { grade = "A 🥇"; gradeColor = "var(--green)"; }
+      else if (pct >= 70) { grade = "B 👍"; gradeColor = "var(--blue)"; }
+      else if (pct >= 60) { grade = "C 🙂"; gradeColor = "#a78bfa"; }
+      else { grade = "F 💪"; gradeColor = "var(--red)"; }
+
+      document.getElementById("quizInner").innerHTML = `
+    <div class="results-screen">
+      <div class="result-hero">
+        <div class="result-grade" style="color:${gradeColor}">${grade}</div>
+        <div style="font-size:32px;font-weight:800;letter-spacing:-1px;margin-top:8px">${pct}%</div>
+        <div class="result-sub">${correct} correct out of ${total} questions — Topic: ${escHtml(topic)}</div>
+      </div>
+      <div class="result-cards">
+        <div class="result-card rc-correct"><div class="rc-num">${correct}</div><div class="rc-label">Correct ✅</div></div>
+        <div class="result-card rc-wrong"><div class="rc-num">${wrong}</div><div class="rc-label">Wrong ❌</div></div>
+        <div class="result-card rc-skip"><div class="rc-num">${skipped}</div><div class="rc-label">Skipped ⏭</div></div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:16px">
+          ${pct >= 80 ? "Excellent! You're exam-ready 🎉" : pct >= 60 ? "Good effort — review the wrong answers and retry!" : "Keep practicing — you can do it! 💪"}
+        </div>
+        <button class="retry-btn" onclick="startExam('${escHtml(topic)}')">🔄 Retry Same Topic</button>
+      </div>
+    </div>`;
+      document.getElementById("quizProgFill").style.width = "100%";
+    }
+
+    // LOADING / ERROR
+    function showLoading(n) {
+      document.getElementById("quizInner").innerHTML = `
+    <div class="load-center">
+      <div class="spinner"></div>
+      <div class="load-topic">${escHtml(topic)}</div>
+      <div class="load-sub">Generating ${n === 1 ? "Basic Q1–15" : n === 2 ? "Intermediate Q16–35" : "Advanced Q36–50"}…</div>
+      <div class="prog-wrap"><div class="prog-fill" id="prog${n}"></div></div>
+    </div>`;
+    }
+
+    function showError(n) {
+      document.getElementById("quizInner").innerHTML = `
+    <div class="err-card">
+      ⚠️ ${escHtml(partErr[n] || "Something went wrong.")}<br/><br/>
+      <button class="btn-ghost" onclick="reloadPart(${n})" style="margin-top:8px">↺ Try Again</button>
+    </div>`;
+    }
+
+    function reloadPart(n) {
+      partMCQs[n] = null; partErr[n] = null; partLoading[n] = false;
+      updateDots(); loadPart(n);
+    }
+
+    // DOTS
+    function updateDots() {
+      [1, 2, 3].forEach(n => {
+        const dot = document.getElementById("dot" + n);
+        if (!dot) return;
+        dot.className = "dot-s";
+        if (partLoading[n]) dot.classList.add("spin");
+        else if (partMCQs[n]) dot.classList.add("done");
+        else if (partErr[n]) dot.style.background = "#ef4444";
+      });
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+
+  <!-- Auth & Sidebar JS (inlined from shared_header.js) -->
+  <script>
+    (function() {
+      function getUsersPy() { try { return JSON.parse(localStorage.getItem('qm_users') || '{}'); } catch(e) { return {}; } }
+      function saveUsersPy(u) { localStorage.setItem('qm_users', JSON.stringify(u)); }
+      function saveSessionPy(user) { localStorage.setItem('qm_session', JSON.stringify(user)); }
+      function loadSessionPy() { try { const s = localStorage.getItem('qm_session'); if (s) return JSON.parse(s); } catch(e) {} return null; }
+
+      function updateLoginBtnPy(user) {
+        const container = document.getElementById('authButtonsPy');
+        if (!container) return;
+        if (user) {
+          const initial = user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
+          container.innerHTML = '<div class="user-circle" onclick="handleLogoutPy()" title="'+(user.name||user.email)+'">' + initial + '</div>';
+        }
+      }
+      window.handleLogoutPy = function() {
+        const s = loadSessionPy();
+        const name = s ? (s.name || s.email) : 'User';
+        if (confirm('Logged in as: ' + name + '\n\nLogout karna chahte hain?')) { localStorage.removeItem('qm_session'); updateLoginBtnPy(null); }
+      };
+      window.openLoginModalPy = function() { document.getElementById('loginModalPy').classList.add('open'); };
+      window.closeLoginModalPy = function() { document.getElementById('loginModalPy').classList.remove('open'); };
+      window.closeLoginModalPyOutside = function(e) { if (e.target === document.getElementById('loginModalPy')) window.closeLoginModalPy(); };
+      window.switchTabPy = function(tab) {
+        document.getElementById('formLoginPy').style.display = tab==='login'?'block':'none';
+        document.getElementById('formSignupPy').style.display = tab==='signup'?'block':'none';
+        document.getElementById('tabLoginPy').classList.toggle('active', tab==='login');
+        document.getElementById('tabSignupPy').classList.toggle('active', tab==='signup');
+      };
+      // SHA-256 password hashing utility
+      async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      // Migrate old base64 passwords to SHA-256 on login
+      async function migratePassword(users, email, plainPass) {
+        const hashed = await hashPassword(plainPass);
+        users[email].pass = hashed;
+        saveUsersPy(users);
+        return hashed;
+      }
+      window.doLoginPy = async function() {
+        const email = document.getElementById('loginEmailPy').value.trim();
+        const pass = document.getElementById('loginPassPy').value;
+        const msg = document.getElementById('loginMsgPy');
+        if (!email||!pass){msg.className='modal-msg err';msg.textContent='Email aur password zaruri hai.';return;}
+        const users = getUsersPy(); const user = users[email];
+        if (!user){msg.className='modal-msg err';msg.textContent='Account nahi mila.';return;}
+        const hashed = await hashPassword(pass);
+        // Support migrating old base64 passwords
+        if (user.pass === btoa(pass)) {
+          await migratePassword(users, email, pass);
+        } else if (user.pass !== hashed) {
+          msg.className='modal-msg err';msg.textContent='Password galat hai.';return;
+        }
+        msg.className='modal-msg ok';msg.textContent='✅ Login successful!';
+        const u = {email, name: user.name}; saveSessionPy(u); updateLoginBtnPy(u);
+        setTimeout(window.closeLoginModalPy, 800);
+      };
+      window.doSignupPy = async function() {
+        const name = document.getElementById('signupNamePy').value.trim();
+        const email = document.getElementById('signupEmailPy').value.trim();
+        const pass = document.getElementById('signupPassPy').value;
+        const msg = document.getElementById('signupMsgPy');
+        if (!name||!email||!pass){msg.className='modal-msg err';msg.textContent='Sab fields fill karo.';return;}
+        if (pass.length<6){msg.className='modal-msg err';msg.textContent='Password 6+ chars ka ho.';return;}
+        if (!email.includes('@')){msg.className='modal-msg err';msg.textContent='Valid email likho.';return;}
+        const users = getUsersPy();
+        if (users[email]){msg.className='modal-msg err';msg.textContent='Email already registered hai.';return;}
+        const hashed = await hashPassword(pass);
+        users[email]={name,pass:hashed}; saveUsersPy(users);
+        msg.className='modal-msg ok';msg.textContent='✅ Account bana gaya!';
+        const u = {email, name}; saveSessionPy(u); updateLoginBtnPy(u);
+        setTimeout(window.closeLoginModalPy, 800);
+      };
+      document.addEventListener('keydown', e => { if (e.key==='Escape') window.closeLoginModalPy(); });
+      updateLoginBtnPy(loadSessionPy());
+
+      // Sidebar expand/collapse toggle
+      const arrow = document.getElementById('sidebarArrow');
+      const sidebar = document.getElementById('iconSidebar');
+      if (arrow && sidebar) {
+        arrow.addEventListener('click', function(e) { e.stopPropagation(); sidebar.classList.toggle('expanded'); });
+        document.addEventListener('click', function(e) {
+          if (sidebar.classList.contains('expanded') && !sidebar.contains(e.target)) sidebar.classList.remove('expanded');
+        });
+      }
+    })();
+  </script>
+
+  <!-- Mobile Sidebar Toggle JS -->
+  <script>
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('iconSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (!sidebar) return;
+      const isOpen = sidebar.classList.contains('mobile-open');
+      if (isOpen) {
+        closeMobileSidebar();
+      } else {
+        sidebar.classList.add('mobile-open');
+        if (overlay) overlay.classList.add('open');
+        // Update hamburger to X
+        const btn = document.getElementById('sidebarToggleBtn');
+        if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      }
+    }
+
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById('iconSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      if (overlay) overlay.classList.remove('open');
+      // Reset hamburger icon
+      const btn = document.getElementById('sidebarToggleBtn');
+      if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+    }
+
+    // Close sidebar on nav item click (mobile)
+    document.querySelectorAll('.isb-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        if (window.innerWidth <= 768) {
+          setTimeout(closeMobileSidebar, 150);
+        }
+      });
+    });
+
+    // Handle resize: close mobile sidebar if resizing to desktop
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) {
+        closeMobileSidebar();
+      }
+    });
+  </script>
+</body>
+
+</html>

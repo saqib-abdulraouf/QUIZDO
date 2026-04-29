@@ -1242,20 +1242,36 @@ function startCh12Part(partIdx, forceReset) {
 }
 
 function openBook(bookId) {
-  document.getElementById("homePage").style.display = "none";
-  document.getElementById("chapterPage").style.display = "none";
-  document.getElementById("ch1Page").style.display = "none";
-  document.getElementById("landingPage").style.display = "none";
-  document.getElementById("quizPage").style.display = "none";
-  document.getElementById("resultsPage").style.display = "none";
-  if (bookId === '300q') {
-    window._fromCh1 = false;
-    document.getElementById("partBadgesWrap").style.display = "flex";
-    document.getElementById("landingPage").style.display = "flex";
-  } else if (bookId === 'agentfactory') {
-    window._fromCh1 = false;
-    document.getElementById("partBadgesWrap").style.display = "none";
-    document.getElementById("chapterPage").style.display = "flex";
+  var BOOK_HASHES = {
+    '300q':         '34afe48fe735d865b6abc5152069e53464efa168ae1836770c183aaaf5135db2',
+    'agentfactory': '14ac0a15dfec0e46faea1e191535d5a3392b90869eddf8022df998ebb4f221a0'
+  };
+  var BOOK_TITLES = {
+    '300q':         'Agent Factory',
+    'agentfactory': 'Chapter 12'
+  };
+  function doOpen() {
+    document.getElementById("homePage").style.display = "none";
+    document.getElementById("chapterPage").style.display = "none";
+    document.getElementById("ch1Page").style.display = "none";
+    document.getElementById("landingPage").style.display = "none";
+    document.getElementById("quizPage").style.display = "none";
+    document.getElementById("resultsPage").style.display = "none";
+    if (bookId === '300q') {
+      window._fromCh1 = false;
+      document.getElementById("partBadgesWrap").style.display = "flex";
+      document.getElementById("landingPage").style.display = "flex";
+    } else if (bookId === 'agentfactory') {
+      window._fromCh1 = false;
+      document.getElementById("partBadgesWrap").style.display = "none";
+      document.getElementById("chapterPage").style.display = "flex";
+    }
+  }
+  // Show unlock popup
+  if (window.showUnlock && BOOK_HASHES[bookId]) {
+    window.showUnlock(BOOK_HASHES[bookId], BOOK_TITLES[bookId], doOpen);
+  } else {
+    doOpen();
   }
 }
 

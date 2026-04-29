@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Professional Practice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./quiz_style.css">
+  <style>
+    body { min-height:100vh; display:flex; flex-direction:column; }
+    .pp-container {
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:40px 20px; text-align:center;
+    }
+    .pp-back {
+      position:absolute; top:24px; left:24px;
+      color:var(--muted); font-size:13px; cursor:pointer;
+      font-family:'Space Mono',monospace; transition:color .2s;
+    }
+    .pp-back:hover { color:var(--gold); }
+    .pp-icon { font-size:56px; margin-bottom:12px; filter:drop-shadow(0 0 20px rgba(34,197,94,.4)); }
+    .pp-title {
+      font-family:'Syne',sans-serif; font-size:clamp(26px,5vw,42px); font-weight:800;
+      color:#e0e0e0; line-height:1.15; margin-bottom:6px;
+    }
+    .pp-title span { color:#22c55e; }
+    .pp-sub {
+      font-family:'Space Mono',monospace; font-size:13px; color:var(--muted);
+      letter-spacing:1.5px; text-transform:uppercase; margin-bottom:40px;
+    }
+    .pp-cards {
+      display:flex; gap:24px; flex-wrap:wrap; justify-content:center;
+      max-width:780px; width:100%;
+    }
+    .pp-card {
+      background:var(--card); border:1px solid #1a1a2a; border-radius:16px;
+      width:340px; max-width:90vw; overflow:hidden; cursor:pointer;
+      transition:all .3s ease; position:relative;
+    }
+    .pp-card:hover { transform:translateY(-6px); border-color:#3a3a5a; box-shadow:0 12px 40px rgba(0,0,0,.5); }
+    .pp-card-cover {
+      height:160px; position:relative; overflow:hidden; display:flex;
+      align-items:center; justify-content:center;
+    }
+    .pp-card-cover svg { position:absolute; top:0; left:0; width:100%; height:100%; }
+    .pp-card-cover-text {
+      position:relative; z-index:1; font-family:'Syne',sans-serif; font-weight:800;
+      font-size:20px; line-height:1.2; text-align:center;
+    }
+    .pp-card-cover-text .sub {
+      font-size:11px; font-family:'Space Mono',monospace; font-weight:400;
+      margin-top:4px; opacity:.7;
+    }
+    .pp-card-body { padding:20px; }
+    .pp-card-tag {
+      display:inline-block; font-family:'Space Mono',monospace; font-size:10px;
+      letter-spacing:1.2px; text-transform:uppercase; padding:4px 10px;
+      border-radius:20px; border:1px solid; margin-bottom:10px;
+    }
+    .pp-card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:17px; color:#e0e0e0; margin-bottom:6px; }
+    .pp-card-desc { font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:16px; }
+    .pp-card-features { margin-bottom:16px; }
+    .pp-card-features .feat {
+      display:flex; align-items:center; gap:8px; font-size:12px;
+      color:var(--muted); margin-bottom:6px; font-family:'Space Mono',monospace;
+    }
+    .pp-card-features .feat .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .pp-card-cta {
+      width:100%; padding:12px; border:none; border-radius:10px;
+      font-family:'Syne',sans-serif; font-weight:700; font-size:14px;
+      cursor:pointer; transition:all .2s;
+    }
+    .pp-card-cta:hover { filter:brightness(1.15); transform:scale(1.02); }
+
+    @media(max-width:720px) {
+      .pp-cards { flex-direction:column; align-items:center; }
+      .pp-card { width:100%; max-width:380px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pp-back" onclick="window.location.href='../book1/book_index.html'">← Back to Library</div>
+
+  <div class="pp-container">
+    <div class="pp-icon">🐍</div>
+    <div class="pp-title">Python Professional <span>Practice</span></div>
+    <div class="pp-sub">Choose your practice mode</div>
+
+    <div class="pp-cards">
+
+      <!-- Card 1: Python Practice with LLM -->
+      <div class="pp-card" onclick="window.location.href='../pymaster/index.html'">
+        <div class="pp-card-cover" style="background:linear-gradient(135deg,#0a1a0a,#001a00,#0a1500);">
+          <svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="340" height="160" fill="#020d02"/>
+            <circle cx="30" cy="20" r="1" fill="#22c55e" opacity=".5"/>
+            <circle cx="280" cy="15" r=".8" fill="#22c55e" opacity=".6"/>
+            <circle cx="170" cy="12" r=".7" fill="#ffd000" opacity=".4"/>
+            <g transform="translate(130,25)">
+              <path d="M40,0 C60,0 80,10 80,30 C80,50 60,60 40,60 C20,60 0,50 0,30 C0,10 20,0 40,0Z" fill="none" stroke="#22c55e" stroke-width="1.5" opacity=".3"/>
+              <text x="20" y="42" font-size="32" font-weight="900" fill="#22c55e" opacity=".85" font-family="monospace">Py</text>
+            </g>
+            <circle cx="170" cy="108" r="4" fill="#22c55e" opacity=".6"/>
+            <circle cx="185" cy="100" r="2.5" fill="#ffd000" opacity=".5"/>
+            <circle cx="155" cy="100" r="2.5" fill="#ffd000" opacity=".5"/>
+            <line x1="170" y1="108" x2="185" y2="100" stroke="#ffd000" stroke-width=".8" opacity=".3"/>
+            <line x1="170" y1="108" x2="155" y2="100" stroke="#ffd000" stroke-width=".8" opacity=".3"/>
+            <rect x="40" y="115" width="50" height="3" rx="1.5" fill="#22c55e" opacity=".2"/>
+            <rect x="40" y="122" width="35" height="3" rx="1.5" fill="#ffd000" opacity=".15"/>
+            <rect x="240" y="115" width="45" height="3" rx="1.5" fill="#ffd000" opacity=".2"/>
+            <rect x="240" y="122" width="30" height="3" rx="1.5" fill="#22c55e" opacity=".15"/>
+            <rect x="0" y="130" width="340" height="30" fill="#22c55e" opacity=".12"/>
+          </svg>
+          <div class="pp-card-cover-text" style="color:#22c55e;">
+            Python Practice<br>with LLM
+            <div class="sub" style="color:#1a8a3a;">AI-Powered · Interactive</div>
+          </div>
+        </div>
+        <div class="pp-card-body">
+          <div class="pp-card-tag" style="color:#22c55e;background:#22c55e0d;border-color:#22c55e30;">🤖 AI Generated · MCQ Drill</div>
+          <div class="pp-card-title">Python Practice with LLM</div>
+          <div class="pp-card-desc">AI se generate hone wale Python MCQs — har baar naye questions! Basic se Advanced tak.</div>
+          <div class="pp-card-features">
+            <div class="feat"><div class="dot" style="background:#22c55e"></div>Basic · Syntax, Definitions, Output</div>
+            <div class="feat"><div class="dot" style="background:#ffd000"></div>Intermediate · Methods, Errors, Concepts</div>
+            <div class="feat"><div class="dot" style="background:#ef4444"></div>Advanced · Traps, Best Practices</div>
+          </div>
+          <button class="pp-card-cta" style="background:#22c55e;color:#000;">Start LLM Practice →</button>
+        </div>
+      </div>
+
+      <!-- Card 2: Python Practice with Bano Qabil -->
+      <div class="pp-card" onclick="window.location.href='../bano_qabil/book_index.html'">
+        <div class="pp-card-cover" style="background:linear-gradient(135deg,#1a0a2e,#2d1052,#0a0a1a);">
+          <svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="340" height="160" fill="#0a0520"/>
+            <circle cx="30" cy="18" r=".8" fill="#a855f7" opacity=".5"/>
+            <circle cx="280" cy="12" r=".8" fill="#a855f7" opacity=".6"/>
+            <circle cx="170" cy="10" r=".7" fill="#c084fc" opacity=".4"/>
+            <g transform="translate(130,30)">
+              <path d="M40,0 C60,0 80,10 80,30 C80,50 60,60 40,60 C20,60 0,50 0,30 C0,10 20,0 40,0Z" fill="none" stroke="#a855f7" stroke-width="1.5" opacity=".3"/>
+              <text x="15" y="42" font-size="28" font-weight="900" fill="#a855f7" opacity=".85" font-family="monospace">BQ</text>
+            </g>
+            <circle cx="170" cy="108" r="4" fill="#a855f7" opacity=".6"/>
+            <circle cx="185" cy="100" r="2.5" fill="#c084fc" opacity=".5"/>
+            <circle cx="155" cy="100" r="2.5" fill="#c084fc" opacity=".5"/>
+            <rect x="40" y="115" width="50" height="3" rx="1.5" fill="#a855f7" opacity=".2"/>
+            <rect x="40" y="122" width="35" height="3" rx="1.5" fill="#c084fc" opacity=".15"/>
+            <rect x="240" y="115" width="45" height="3" rx="1.5" fill="#c084fc" opacity=".2"/>
+            <rect x="240" y="122" width="30" height="3" rx="1.5" fill="#a855f7" opacity=".15"/>
+            <rect x="0" y="130" width="340" height="30" fill="#a855f7" opacity=".12"/>
+          </svg>
+          <div class="pp-card-cover-text" style="color:#a855f7;">
+            Python Practice<br>with Bano Qabil
+            <div class="sub" style="color:#7c3aed;">Competency-Based · 4 Parts</div>
+          </div>
+        </div>
+        <div class="pp-card-body">
+          <div class="pp-card-tag" style="color:#a855f7;background:#a855f70d;border-color:#a855f730;">🐍 60 Questions · 4 Parts</div>
+          <div class="pp-card-title">Python Practice with Bano Qabil</div>
+          <div class="pp-card-desc">Bano Qabil Competency-Based Test — 50 MCQs + 10 Descriptive across 4 difficulty levels.</div>
+          <div class="pp-card-features">
+            <div class="feat"><div class="dot" style="background:#22c55e"></div>Basic · Q1–15</div>
+            <div class="feat"><div class="dot" style="background:#38bdf8"></div>Intermediate · Q16–30</div>
+            <div class="feat"><div class="dot" style="background:#f5c518"></div>Upper Intermediate · Q31–50</div>
+            <div class="feat"><div class="dot" style="background:#a855f7"></div>Advanced · Q51–60 · Descriptive</div>
+          </div>
+          <button class="pp-card-cta" style="background:#a855f7;color:#fff;">Start Bano Qabil →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -8,7 +8,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="../shared/unlock.css">
   <link rel="stylesheet" href="./quiz_style.css">
+  <script src="../shared/unlock.js"></script>
 </head>
 
 <body>
@@ -58,9 +60,9 @@
         <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         <span class="isb-label">Book 2 — Chapter 12</span>
       </div>
-      <div class="isb-item" data-tip="PyMaster Tutor" onclick="window.location.href='../pymaster/index.html'">
+      <div class="isb-item" data-tip="Python Professional Practice" onclick="window.location.href='../python_practice/index.html'">
         <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
-        <span class="isb-label">PyMaster Tutor</span>
+        <span class="isb-label">Python Professional Practice</span>
       </div>
     </div>
     <div class="icon-sidebar-bottom">
@@ -336,8 +338,8 @@
         </div>
       </div>
 
-      <!-- Book 3: PyMaster Tutor -->
-      <div class="book-card" onclick="window.location.href='../pymaster/index.html'" style="cursor:pointer;">
+      <!-- Book 3: Python Professional Practice -->
+      <div class="book-card" onclick="window.location.href='../python_practice/index.html'" style="cursor:pointer;">
         <div class="book-cover"
           style="background:linear-gradient(135deg,#0a1a0a 0%,#001a00 50%,#0a1500 100%);border-bottom:1px solid #1a3a1a;height:180px;position:relative;overflow:hidden;">
           <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" width="280" height="180"
@@ -353,85 +355,39 @@
               </linearGradient>
             </defs>
             <rect width="280" height="180" fill="url(#pysky)" />
-            <!-- Stars -->
             <circle cx="25" cy="15" r="0.8" fill="#22c55e" opacity="0.6" />
             <circle cx="80" cy="22" r="1" fill="#fff" opacity="0.3" />
             <circle cx="220" cy="10" r="0.8" fill="#22c55e" opacity="0.5" />
-            <circle cx="255" cy="30" r="1" fill="#fff" opacity="0.3" />
             <circle cx="140" cy="18" r="0.7" fill="#ffd000" opacity="0.5" />
-            <!-- Python logo shape -->
             <g transform="translate(100, 30)">
-              <!-- Snake body curve -->
               <path d="M40,0 C60,0 80,10 80,30 C80,50 60,60 40,60 C20,60 0,50 0,30 C0,10 20,0 40,0Z" fill="none"
                 stroke="#22c55e" stroke-width="1.5" opacity="0.4" />
-              <!-- P letter -->
               <text x="25" y="42" font-size="32" font-weight="900" fill="#22c55e" opacity="0.85"
                 font-family="monospace">Py</text>
             </g>
-            <!-- Code lines decoration -->
-            <rect x="30" y="100" width="60" height="3" rx="1.5" fill="#22c55e" opacity="0.25" />
-            <rect x="30" y="108" width="40" height="3" rx="1.5" fill="#ffd000" opacity="0.2" />
-            <rect x="30" y="116" width="50" height="3" rx="1.5" fill="#22c55e" opacity="0.15" />
-            <rect x="175" y="100" width="55" height="3" rx="1.5" fill="#ffd000" opacity="0.25" />
-            <rect x="175" y="108" width="35" height="3" rx="1.5" fill="#22c55e" opacity="0.2" />
-            <rect x="175" y="116" width="45" height="3" rx="1.5" fill="#ffd000" opacity="0.15" />
-            <!-- AI spark dots -->
             <circle cx="140" cy="108" r="4" fill="#22c55e" opacity="0.7" />
             <circle cx="155" cy="100" r="2.5" fill="#ffd000" opacity="0.6" />
             <circle cx="125" cy="100" r="2.5" fill="#ffd000" opacity="0.6" />
-            <circle cx="155" cy="116" r="2.5" fill="#22c55e" opacity="0.5" />
-            <circle cx="125" cy="116" r="2.5" fill="#22c55e" opacity="0.5" />
-            <!-- Lines from center -->
-            <line x1="140" y1="108" x2="155" y2="100" stroke="#ffd000" stroke-width="0.8" opacity="0.4" />
-            <line x1="140" y1="108" x2="125" y2="100" stroke="#ffd000" stroke-width="0.8" opacity="0.4" />
-            <line x1="140" y1="108" x2="155" y2="116" stroke="#22c55e" stroke-width="0.8" opacity="0.4" />
-            <line x1="140" y1="108" x2="125" y2="116" stroke="#22c55e" stroke-width="0.8" opacity="0.4" />
-            <!-- Glow overlay -->
             <rect x="0" y="138" width="280" height="42" fill="url(#pyglow)" />
           </svg>
           <div class="book-cover-title" style="color:#22c55e;">
-            PyMaster Tutor
-            <div class="book-cover-author" style="color:#1a6a2a;">AI-Powered · Interactive Exam</div>
+            Python Professional
+            <div class="book-cover-author" style="color:#1a6a2a;">Practice</div>
           </div>
         </div>
         <div class="book-info">
-          <div class="book-tag" style="color:#22c55e;background:#22c55e0d;border-color:#22c55e30;">🐍 AI Generated · MCQ
-            Drill</div>
-          <div class="book-title">PyMaster Tutor — Interactive Python Exam</div>
-          <div class="book-desc">AI se generate hone wale Python MCQs — Basic, Intermediate, Advanced. Har baar naye
-            questions!</div>
+          <div class="book-tag" style="color:#22c55e;background:#22c55e0d;border-color:#22c55e30;">🐍 Python Professional Practice</div>
+          <div class="book-title">Python Professional Practice</div>
+          <div class="book-desc">Choose your practice mode — AI-powered LLM quizzes or Bano Qabil competency test.</div>
           <div class="book-chapters-preview">
             <div class="bcp-row">
-              <div class="bcp-dot" style="background:#22c55e"></div>Basic &nbsp;·&nbsp; Syntax, Definitions, Output
+              <div class="bcp-dot" style="background:#22c55e"></div>Python Practice with LLM &nbsp;·&nbsp; AI Generated
             </div>
             <div class="bcp-row">
-              <div class="bcp-dot" style="background:#ffd000"></div>Intermediate &nbsp;·&nbsp; Methods, Errors, Concepts
-            </div>
-            <div class="bcp-row">
-              <div class="bcp-dot" style="background:#ef4444"></div>Advanced &nbsp;·&nbsp; Traps, Best Practices
+              <div class="bcp-dot" style="background:#a855f7"></div>Python Practice with Bano Qabil &nbsp;·&nbsp; 15 MCQs
             </div>
           </div>
-          <button class="book-cta" style="background:#22c55e;color:#000;">Open PyMaster →</button>
-        </div>
-      </div>
-
-      <!-- Book 4: Coming Soon -->
-      <div class="book-card coming-soon">
-        <div class="coming-badge">Coming Soon</div>
-        <div class="book-cover"
-          style="background:linear-gradient(135deg,#0d1117,#0a0a1a,#0d0d1a);border-bottom:1px solid #1a1a2a;height:180px;display:flex;align-items:center;justify-content:center;">
-          <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" width="280" height="180">
-            <rect width="280" height="180" fill="#0a0a1a" />
-            <text x="140" y="85" font-size="40" text-anchor="middle" fill="#1a1a2a">📖</text>
-            <text x="140" y="115" font-size="11" text-anchor="middle" fill="#2a2a3a" font-family="monospace">MORE
-              COMING</text>
-          </svg>
-        </div>
-        <div class="book-info">
-          <div class="book-tag" style="color:var(--muted);background:#1a1a2a;border-color:#2a2a3a">🔒 Coming Soon</div>
-          <div class="book-title" style="color:var(--muted)">Next Book</div>
-          <div class="book-desc">More books will be added here soon.</div>
-          <button class="book-cta" style="background:#1a1a2a;color:var(--muted);" disabled>Coming Soon</button>
+          <button class="book-cta" style="background:#22c55e;color:#000;">Open Practice →</button>
         </div>
       </div>
 

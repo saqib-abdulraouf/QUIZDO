@@ -28,6 +28,7 @@
     <div class="fpi-badge p2" id="fpiBadge2" onclick="startPart(1)"><span class="fpi-dot"></span> Intermediate</div>
     <div class="fpi-badge p3" id="fpiBadge3" onclick="startPart(2)"><span class="fpi-dot"></span> Upper Int.</div>
     <div class="fpi-badge p4" id="fpiBadge4" onclick="startPart(3)"><span class="fpi-dot"></span> Advanced</div>
+    <div class="fpi-badge p5" id="fpiBadge5" onclick="startPart(4)"><span class="fpi-dot"></span> Upper Adv.</div>
   </div>
 
   <!-- HEADER (hidden by CSS, kept for auth buttons functionality) -->
@@ -99,6 +100,7 @@
       <div class="sidebar-badge p2" id="badge2" onclick="startPart(1)"><span class="sb-dot" style="background:#38bdf8"></span> Intermediate <span class="sb-range">Q16–30</span></div>
       <div class="sidebar-badge p3" id="badge3" onclick="startPart(2)"><span class="sb-dot" style="background:#f5c518"></span> Upper Int. <span class="sb-range">Q31–50</span></div>
       <div class="sidebar-badge p4" id="badge4" onclick="startPart(3)"><span class="sb-dot" style="background:#a855f7"></span> Advanced <span class="sb-range">Q51–60</span></div>
+      <div class="sidebar-badge p5" id="badge5" onclick="startPart(4)"><span class="sb-dot" style="background:#ef4444"></span> Upper Adv. <span class="sb-range">Q61–70</span></div>
     </div>
     <div class="sidebar-footer">
       <div class="sidebar-badge" onclick="goHome()" style="color:var(--gold);border-color:#f5c51833;">🏠 Back to Library</div>
@@ -211,14 +213,15 @@
           </div>
         </div>
         <div class="book-info">
-          <div class="book-tag" style="color:#a855f7;background:#a855f70d;border-color:#a855f730;">🐍 60 Questions · 4 Parts</div>
+          <div class="book-tag" style="color:#a855f7;background:#a855f70d;border-color:#a855f730;">🐍 70 Questions · 5 Parts</div>
           <div class="book-title">Bano Qabil Competency-Based Test</div>
-          <div class="book-desc">Python concepts — Basic to Advanced. Virtual Environments, Classes, Flask, Metaclasses, and more.</div>
+          <div class="book-desc">Python concepts — Basic to Upper Advanced. Virtual Environments, Classes, Flask, Metaclasses, and more.</div>
           <div class="book-chapters-preview">
             <div class="bcp-row"><div class="bcp-dot" style="background:#22c55e"></div>Basic &nbsp;·&nbsp; Q1–15</div>
             <div class="bcp-row"><div class="bcp-dot" style="background:#38bdf8"></div>Intermediate &nbsp;·&nbsp; Q16–30</div>
             <div class="bcp-row"><div class="bcp-dot" style="background:#f5c518"></div>Upper Intermediate &nbsp;·&nbsp; Q31–50</div>
             <div class="bcp-row"><div class="bcp-dot" style="background:#a855f7"></div>Advanced &nbsp;·&nbsp; Q51–60 · Descriptive</div>
+            <div class="bcp-row"><div class="bcp-dot" style="background:#ef4444"></div>Upper Advanced &nbsp;·&nbsp; Q61–70 · Descriptive</div>
           </div>
           <button class="book-cta" style="background:#a855f7;color:#fff;">Open Book →</button>
         </div>
@@ -234,7 +237,7 @@
     <div class="landing-back" onclick="goHome()">← Back to Library</div>
     <div class="landing-icon">🐍</div>
     <div class="landing-title">Bano Qabil<br>Competency-Based Test</div>
-    <div class="landing-sub">Python · 4 Parts · 60 Questions</div>
+    <div class="landing-sub">Python · 5 Parts · 70 Questions</div>
     <div class="part-cards">
       <div class="part-card c1" onclick="startPart(0)" id="pcBQ0" style="border-color:#22c55e33;">
         <div class="pc-num" style="color:#22c55e;">Part 1</div>
@@ -263,6 +266,13 @@
         <div class="pc-range">Q51 — Q60</div>
         <div class="pc-count">10 Descriptive Questions</div>
         <div class="pc-progress" id="progBQ3"></div>
+      </div>
+      <div class="part-card c5" onclick="startPart(4)" id="pcBQ4" style="border-color:#ef444433;">
+        <div class="pc-num" style="color:#ef4444;">Part 5</div>
+        <div class="pc-title">Upper Advanced</div>
+        <div class="pc-range">Q61 — Q70</div>
+        <div class="pc-count">10 Descriptive Questions</div>
+        <div class="pc-progress" id="progBQ4"></div>
       </div>
     </div>
     <button class="start-all-btn" onclick="startPart(0)" style="background:#22c55e;color:#000;">Start from Basic →</button>

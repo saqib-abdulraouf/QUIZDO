@@ -1693,7 +1693,7 @@
   <script src="./module1.js"></script>
   <script src="./module2.js"></script>
   <script src="./module3.js"></script>
-  <script src="./module4.js"></script>
+  <script src="./module4.js?v=2"></script>
   <script src="./module5.js"></script>
   <script src="./module6.js"></script>
   <script src="./module7.js"></script>
@@ -1890,9 +1890,11 @@
         8: window.MODULE_8,
       };
       const moduleData = moduleDataMap[num];
+      console.log('Opening Module', num, '| Data found:', !!moduleData, '| Questions:', moduleData && moduleData.questions ? moduleData.questions.length : 0);
       if (moduleData && moduleData.questions) {
         ALL_QUESTIONS = moduleData.questions;
       } else {
+        console.warn('Module', num, 'data not found! Falling back to QUIZ_DATA (Module 1).');
         ALL_QUESTIONS = window.QUIZ_DATA ? window.QUIZ_DATA.questions : [];
       }
 

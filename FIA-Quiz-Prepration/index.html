@@ -81,25 +81,23 @@
 
     /* ── SCORE BOX ── */
     .score-box {
-      position: fixed;
-      top: 12px;
-      right: 16px;
-      z-index: 100;
-      padding: 6px 16px;
-      border-radius: 20px;
-      background: rgba(34, 197, 94, .1);
-      border: 1px solid rgba(34, 197, 94, .25);
+      padding: 5px 12px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, .15);
+      border: 1px solid rgba(34, 197, 94, .3);
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: #86efac;
       backdrop-filter: blur(12px);
       display: none;
-      transition: all .3s
+      transition: all .3s;
+      white-space: nowrap;
+      margin: 0 auto;
     }
 
     .score-box.visible {
-      display: block
+      display: inline-block;
     }
 
     /* ── SIDEBAR ── */
@@ -381,9 +379,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 24px;
-      padding: 24px 20px
+      justify-content: flex-start;
+      padding: 0;
+      gap: 0
     }
 
     #landing::-webkit-scrollbar {
@@ -393,6 +391,16 @@
     #landing::-webkit-scrollbar-thumb {
       background: rgba(255, 208, 0, .15);
       border-radius: 2px
+    }
+
+    .landing-body {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 24px 20px;
+      box-sizing: border-box;
     }
 
     .hero {
@@ -581,7 +589,10 @@
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(16px);
       flex-shrink: 0;
-      gap: 10px
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10
     }
 
     .quiz-subject-name {
@@ -1428,7 +1439,7 @@
 
       .quiz-subject-bar {
         padding-left: 54px;
-        padding-right: 110px;
+        padding-right: 16px;
       }
 
       .quiz-inner {
@@ -1595,8 +1606,7 @@
   <!-- SIDEBAR OVERLAY (mobile) -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
-  <!-- FLOATING SCORE BADGE -->
-  <div class="score-box" id="scoreBox">Score: 0 / 0</div>
+
 
   <!-- SIDEBAR NAV -->
   <div class="icon-sidebar-zone" id="iconSidebarZone"></div>
@@ -1663,9 +1673,9 @@
 
     <!-- LANDING (subjects) -->
     <div id="landing" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-        <button class="quiz-back-btn" onclick="goModules()" style="flex-shrink:0">← Modules</button>
-        <span style="font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700" id="landingModuleLabel"></span>
+      <div class="quiz-subject-bar" style="width: 100%; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px;">
+        <button class="quiz-back-btn" onclick="handleBack()">← Back</button>
+        <div class="quiz-subject-name" id="landingModuleLabel"></div>
       </div>
       <div class="hero">
         <h1 class="hero-h1" style="font-size:clamp(20px,3vw,30px)">Choose a <span class="ac2">Subject</span></h1>
@@ -1677,8 +1687,9 @@
     <!-- QUIZ -->
     <div id="quiz">
       <div class="quiz-subject-bar">
+        <button class="quiz-back-btn" onclick="handleBack()">← Back</button>
+        <div class="score-box" id="scoreBox">Score: 0 / 0</div>
         <div class="quiz-subject-name" id="quizSubjectName">📋 Subject</div>
-        <button class="quiz-back-btn" onclick="goLanding()">← Subjects</button>
       </div>
       <div class="quiz-progress">
         <div class="quiz-progress-fill" id="quizProgFill"></div>
@@ -1694,7 +1705,7 @@
   <script src="./module2.js"></script>
   <script src="./module3.js"></script>
   <script src="./module4.js?v=2"></script>
-  <script src="./module5.js"></script>
+  <script src="./module5.js?v=2"></script>
   <script src="./module6.js"></script>
   <script src="./module7.js"></script>
   <script src="./module8.js"></script>
@@ -1720,6 +1731,108 @@
     let currentIdx = 0;        // current question index in currentQuestions
     let answers = {};          // questionId -> { chosen, correct }
     let currentModule = 1;     // which module is currently being played
+    let currentView = "modules"; // "modules", "landing", "quiz", "results"
+
+    function saveState() {
+      const state = {
+        currentView,
+        currentModule,
+        currentSubject,
+        currentIdx,
+        answers
+      };
+      localStorage.setItem('fia_quiz_state', JSON.stringify(state));
+    }
+
+    function loadState() {
+      try {
+        const stateStr = localStorage.getItem('fia_quiz_state');
+        if (!stateStr) return;
+        const state = JSON.parse(stateStr);
+        if (!state) return;
+
+        // Restore values
+        if (state.currentModule) currentModule = state.currentModule;
+        if (state.currentSubject !== undefined) currentSubject = state.currentSubject;
+        if (state.currentIdx !== undefined) currentIdx = state.currentIdx;
+        if (state.answers) answers = state.answers;
+        if (state.currentView) currentView = state.currentView;
+
+        // Load the correct module questions
+        const moduleDataMap = {
+          1: window.QUIZ_DATA || window.MODULE_1,
+          2: window.MODULE_2,
+          3: window.MODULE_3,
+          4: window.MODULE_4,
+          5: window.MODULE_5,
+          6: window.MODULE_6,
+          7: window.MODULE_7,
+          8: window.MODULE_8,
+        };
+        const moduleData = moduleDataMap[currentModule];
+        if (moduleData && moduleData.questions) {
+          ALL_QUESTIONS = moduleData.questions;
+        } else {
+          ALL_QUESTIONS = window.QUIZ_DATA ? window.QUIZ_DATA.questions : [];
+        }
+
+        document.getElementById("landingModuleLabel").textContent = "Module " + currentModule;
+
+        if (currentView === 'landing') {
+          document.getElementById("modules").style.display = "none";
+          document.getElementById("landing").style.display = "flex";
+          document.getElementById("quiz").classList.remove("active");
+          document.getElementById("scoreBox").classList.remove("visible");
+          buildLanding();
+        } else if (currentView === 'quiz') {
+          if (currentSubject) {
+            currentQuestions = ALL_QUESTIONS.filter(q => q.subject === currentSubject);
+          } else {
+            currentQuestions = [...ALL_QUESTIONS];
+          }
+
+          if (currentQuestions.length > 0) {
+            const subjectInfo = SUBJECTS.find(s => s.name === currentSubject);
+            const label = currentSubject ? `${subjectInfo.icon} ${currentSubject}` : "🎯 Full Mock Test";
+            document.getElementById("quizSubjectName").textContent = label;
+
+            document.getElementById("landing").style.display = "none";
+            document.getElementById("modules").style.display = "none";
+            document.getElementById("quiz").classList.add("active");
+            document.getElementById("scoreBox").classList.add("visible");
+            updateScore();
+            renderQuestion(currentIdx);
+          } else {
+            goModules();
+          }
+        } else if (currentView === 'results') {
+          if (currentSubject) {
+            currentQuestions = ALL_QUESTIONS.filter(q => q.subject === currentSubject);
+          } else {
+            currentQuestions = [...ALL_QUESTIONS];
+          }
+
+          if (currentQuestions.length > 0) {
+            const subjectInfo = SUBJECTS.find(s => s.name === currentSubject);
+            const label = currentSubject ? `${subjectInfo.icon} ${currentSubject}` : "🎯 Full Mock Test";
+            document.getElementById("quizSubjectName").textContent = label;
+
+            document.getElementById("landing").style.display = "none";
+            document.getElementById("modules").style.display = "none";
+            document.getElementById("quiz").classList.add("active");
+            document.getElementById("scoreBox").classList.add("visible");
+            updateScore();
+            showResults();
+          } else {
+            goModules();
+          }
+        } else {
+          goModules();
+        }
+      } catch (e) {
+        console.error("Error loading state:", e);
+      }
+    }
 
     // ─── MODULE COMPLETION (localStorage) ───
     function getCompletedModules() {
@@ -1730,7 +1843,7 @@
       if (!completed.includes(num)) { completed.push(num); localStorage.setItem('fia_completed_modules', JSON.stringify(completed)); }
     }
     function isModuleUnlocked(num) {
-      return num <= 4; // Modules 1 to 4 are unlocked, 5 to 8 are locked (under work)
+      return num <= 5; // Modules 1 to 5 are unlocked, 6 to 8 are locked (under work)
     }
     function isModuleCompleted(num) {
       return getCompletedModules().includes(num);
@@ -1774,6 +1887,8 @@
       currentSubject = subject;
       answers = {};
       currentIdx = 0;
+      currentView = "quiz";
+      saveState();
 
       if (subject) {
         currentQuestions = ALL_QUESTIONS.filter(q => q.subject === subject);
@@ -1803,6 +1918,8 @@
 
     // ─── GO TO LANDING (subjects) ───
     function goLanding() {
+      currentView = "landing";
+      saveState();
       document.getElementById("landing").style.display = "flex";
       document.getElementById("modules").style.display = "none";
       document.getElementById("quiz").classList.remove("active");
@@ -1812,12 +1929,33 @@
 
     // ─── GO TO MODULES ───
     function goModules() {
+      currentView = "modules";
+      saveState();
       document.getElementById("modules").style.display = "flex";
       document.getElementById("landing").style.display = "none";
       document.getElementById("quiz").classList.remove("active");
       document.getElementById("scoreBox").classList.remove("visible");
       document.getElementById("quizProgFill").style.width = "0%";
       buildModules(); // refresh module states
+    }
+
+    // ─── STEP BY STEP BACK ───
+    function handleBack() {
+      if (currentView === "results") {
+        currentView = "quiz";
+        saveState();
+
+        document.getElementById("landing").style.display = "none";
+        document.getElementById("modules").style.display = "none";
+        document.getElementById("quiz").classList.add("active");
+        document.getElementById("scoreBox").classList.add("visible");
+        updateScore();
+        renderQuestion(currentQuestions.length - 1);
+      } else if (currentView === "quiz") {
+        goLanding();
+      } else if (currentView === "landing") {
+        goModules();
+      }
     }
 
     // ─── BUILD MODULES ───
@@ -1902,12 +2040,14 @@
       document.getElementById("modules").style.display = "none";
       document.getElementById("landing").style.display = "flex";
       buildLanding();
+      saveState();
     }
 
     // ─── RENDER QUESTION ───
     function renderQuestion(idx) {
       if (idx < 0 || idx >= currentQuestions.length) return;
       currentIdx = idx;
+      saveState();
       const q = currentQuestions[idx];
       const total = currentQuestions.length;
       const answered = answers[q.id];
@@ -1917,6 +2057,19 @@
       const pct = Math.round((doneCount / total) * 100);
       document.getElementById("quizProgFill").style.width = pct + "%";
 
+      // Calculate max unlocked index
+      let maxUnlockedIdx = 0;
+      for (let i = 0; i < currentQuestions.length; i++) {
+        if (answers[currentQuestions[i].id]) {
+          maxUnlockedIdx = i + 1;
+        } else {
+          break;
+        }
+      }
+      if (maxUnlockedIdx >= currentQuestions.length) {
+        maxUnlockedIdx = currentQuestions.length - 1;
+      }
+
       // Dots
       let dotsHtml = "";
       currentQuestions.forEach((cq, i) => {
@@ -1924,7 +2077,13 @@
         let cls = "q-dot";
         if (i === idx) cls += " current";
         else if (a) cls += (a.correct ? " answered-correct" : " answered-wrong");
-        dotsHtml += `<div class="${cls}" title="Q${i + 1}" onclick="renderQuestion(${i})"></div>`;
+        
+        if (i <= maxUnlockedIdx) {
+          dotsHtml += `<div class="${cls}" title="Q${i + 1}" onclick="renderQuestion(${i})"></div>`;
+        } else {
+          cls += " locked-dot";
+          dotsHtml += `<div class="${cls}" title="Q${i + 1} (Locked)" style="cursor: not-allowed; opacity: 0.35;"></div>`;
+        }
       });
 
       // Subject tag color
@@ -1968,17 +2127,17 @@
       const isFirst = idx === 0;
       const isLast = idx === total - 1;
       const allDone = Object.keys(answers).length === total;
+      const nextDisabled = answered ? "" : "disabled";
 
       let navHtml = `<div class="nav-row">
-        <button class="btn-nav btn-prev" onclick="renderQuestion(${idx - 1})" ${isFirst ? "disabled" : ""}>← Prev</button>
-        <button class="btn-nav btn-skip" onclick="renderQuestion(${idx + 1 < total ? idx + 1 : idx})">Skip</button>`;
+        <button class="btn-nav btn-prev" onclick="renderQuestion(${idx - 1})" ${isFirst ? "disabled" : ""}>← Prev</button>`;
 
       if (allDone) {
         navHtml += `<button class="btn-nav btn-next" onclick="showResults()">See Results 🏆</button>`;
       } else if (isLast) {
-        navHtml += `<button class="btn-nav btn-next" onclick="showResults()">Finish Quiz</button>`;
+        navHtml += `<button class="btn-nav btn-next" onclick="showResults()" ${nextDisabled}>Finish Quiz</button>`;
       } else {
-        navHtml += `<button class="btn-nav btn-next" onclick="renderQuestion(${idx + 1})">Next →</button>`;
+        navHtml += `<button class="btn-nav btn-next" onclick="renderQuestion(${idx + 1})" ${nextDisabled}>Next →</button>`;
       }
       navHtml += `</div>`;
 
@@ -2005,6 +2164,7 @@
       if (!q) return;
       const correct = chosen === q.answer;
       answers[qId] = { chosen, correct };
+      saveState();
       updateScore();
       renderQuestion(currentIdx);
 
@@ -2031,6 +2191,8 @@
 
     // ─── RESULTS ───
     function showResults() {
+      currentView = "results";
+      saveState();
       const total = currentQuestions.length;
       const answeredCount = Object.keys(answers).length;
       const correct = Object.values(answers).filter(a => a.correct).length;
@@ -2160,7 +2322,10 @@
     document.addEventListener('keydown', function(e) {
       if (!document.getElementById('quiz').classList.contains('active')) return;
       if (e.key === 'ArrowRight' || e.key === 'n') {
-        if (currentIdx < currentQuestions.length - 1) renderQuestion(currentIdx + 1);
+        const q = currentQuestions[currentIdx];
+        if (q && answers[q.id]) {
+          if (currentIdx < currentQuestions.length - 1) renderQuestion(currentIdx + 1);
+        }
       } else if (e.key === 'ArrowLeft' || e.key === 'p') {
         if (currentIdx > 0) renderQuestion(currentIdx - 1);
       } else if (e.key >= '1' && e.key <= '4') {
@@ -2177,6 +2342,7 @@
     // ─── INIT ───
     buildModules();
     buildLanding();
+    loadState();
   </script>
 </body>
 

@@ -1730,7 +1730,7 @@
       if (!completed.includes(num)) { completed.push(num); localStorage.setItem('fia_completed_modules', JSON.stringify(completed)); }
     }
     function isModuleUnlocked(num) {
-      return true; // All modules unlocked
+      return num <= 4; // Modules 1 to 4 are unlocked, 5 to 8 are locked (under work)
     }
     function isModuleCompleted(num) {
       return getCompletedModules().includes(num);

@@ -1674,6 +1674,8 @@
   </div>
 
   <script src="./quiz.js"></script>
+  <script src="./module1.js"></script>
+  <script src="./module2.js"></script>
   <script>
     // ═══════════════════════════════════════════════
     // FIA QUIZ ENGINE — Reads from window.QUIZ_DATA
@@ -1687,8 +1689,8 @@
       { name: "Islamiat",          icon: "☪️",  color: "#22d3ee", colorDim: "rgba(34,211,238,.15)" },
     ];
 
-    // Get all questions from quiz.js
-    const ALL_QUESTIONS = window.QUIZ_DATA ? window.QUIZ_DATA.questions : [];
+    // Get all questions — default to Module 1
+    let ALL_QUESTIONS = window.QUIZ_DATA ? window.QUIZ_DATA.questions : [];
 
     // STATE
     let currentSubject = "";   // "" = all subjects
@@ -1706,8 +1708,7 @@
       if (!completed.includes(num)) { completed.push(num); localStorage.setItem('fia_completed_modules', JSON.stringify(completed)); }
     }
     function isModuleUnlocked(num) {
-      if (num === 1) return true;
-      return getCompletedModules().includes(num - 1);
+      return true; // All modules unlocked
     }
     function isModuleCompleted(num) {
       return getCompletedModules().includes(num);
@@ -1854,6 +1855,25 @@
     // ─── OPEN MODULE ───
     function openModule(num) {
       currentModule = num;
+
+      // Load the correct module's questions
+      const moduleDataMap = {
+        1: window.QUIZ_DATA || window.MODULE_1,
+        2: window.MODULE_2,
+        3: window.MODULE_3,
+        4: window.MODULE_4,
+        5: window.MODULE_5,
+        6: window.MODULE_6,
+        7: window.MODULE_7,
+        8: window.MODULE_8,
+      };
+      const moduleData = moduleDataMap[num];
+      if (moduleData && moduleData.questions) {
+        ALL_QUESTIONS = moduleData.questions;
+      } else {
+        ALL_QUESTIONS = window.QUIZ_DATA ? window.QUIZ_DATA.questions : [];
+      }
+
       document.getElementById("landingModuleLabel").textContent = "Module " + num;
       document.getElementById("modules").style.display = "none";
       document.getElementById("landing").style.display = "flex";

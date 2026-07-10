@@ -1,3 +1,4 @@
+(function() {
 const quizData = {
   "test_name": "FIA Computer-Based Test - Practice MCQs",
   "based_on_syllabus": {
@@ -114,3 +115,4 @@ const quizData = {
 
 // Expose as Module 1 data
 window.MODULE_1 = quizData;
+})();
